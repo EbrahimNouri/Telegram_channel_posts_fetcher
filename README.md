@@ -27,58 +27,59 @@ Automatic Telegram channel posts logger using GitHub Actions.
 
 
 
+
 ## Latest Channel Posts
 
 ```
-
-Post #3:
-Server: 92.118.206.53 Port: 443 Secret: ee328dd6a9f470d1672bf6435d2b6c5e5e706574726f766963682e7275 @ProxyMTProto
-Link: https://t.mehttps://t.me/ProxyMTProto/47141
+Link: https://t.mehttps://t.me/mitivpn/16625
 ----------------------------------------
 
-Post #4:
-Server: proxysb.xyz Port: 443 Secret: eef7ca86268af768135f9ca41f89e9efb670726f787973622e78797a @ProxyMTProto
-Link: https://t.mehttps://t.me/ProxyMTProto/47142
+Post #12:
+🛡 کانفیگ فول پرسرعت برای نت ملی نپستر مخصوص دانلود وب گردی نامحدود برای اندروید و آیفون  🔹نحوه اتصال داخل اندروید کلیک کن👉  🔹نحوه اتصال داخل آیفون کلیک کن👉  اینترنت آزاد برای همه, یا هیچکس 🖤  T.me/MiTiVPN 🥇
+Link: https://t.mehttps://t.me/mitivpn/16626
 ----------------------------------------
 
-Post #5:
-🔥 Хотите клиентов, а не просто просмотры? Want real users, not just views?  📊 Тысячи активных пользователей каждый день / Thousands of active users daily 🎯 Реклама, которая реально даёт результат / Ads that actually convert  🚀 Ограниченное количество мест / Limited ad slots  📨 Напишите сейчас и забронируйте размещение / Contact now to book 👉 @Ads_ProxyMTProto
-Link: https://t.mehttps://t.me/ProxyMTProto/47143
+Post #13:
+🛡 کانفیگ فول پرسرعت برای نت ملی نپستر مخصوص دانلود وب گردی نامحدود برای اندروید و آیفون  🔹نحوه اتصال داخل اندروید کلیک کن👉  🔹نحوه اتصال داخل آیفون کلیک کن👉  اینترنت آزاد برای همه, یا هیچکس 🖤  T.me/MiTiVPN 🥇
+Link: https://t.mehttps://t.me/mitivpn/16627
 ----------------------------------------
 
-Post #6:
-Server: 130.49.218.57 Port: 443 Secret: ee8aa50573bd2e964427df682f93935ce4646c2e676f6f676c652e636f6d @ProxyMTProto
-Link: https://t.mehttps://t.me/ProxyMTProto/47144
+Post #14:
+🛡 کانفیگ فول پرسرعت برای نت ملی نپستر مخصوص دانلود وب گردی نامحدود برای اندروید و آیفون  🔹نحوه اتصال داخل اندروید کلیک کن👉  🔹نحوه اتصال داخل آیفون کلیک کن👉  اینترنت آزاد برای همه, یا هیچکس 🖤  T.me/MiTiVPN 🥇
+Link: https://t.mehttps://t.me/mitivpn/16633
 ----------------------------------------
 
-Post #7:
-Server: p7.owo.chillmybabe.ru Port: 8443 Secret: 7qfcfkjg7RFcOSVbyV15npNhcGkucGVyZWtyZXN0b2sucnU @ProxyMTProto
-Link: https://t.mehttps://t.me/ProxyMTProto/47145
+Post #15:
+ملی شکن 💥♥️.npvt
+Link: https://t.mehttps://t.me/mitivpn/16725
 ----------------------------------------
 
-Post #8:
-Server: proxytg.fit Port: 443 Secret: eec8f164f338f20e2e3c7a0f4e0408a51270726f787974672e666974 @ProxyMTProto
-Link: https://t.mehttps://t.me/ProxyMTProto/47146
+Post #16:
+🛡 کانفیگ فول پرسرعت برای نت ملی نپستر مخصوص دانلود وب گردی نامحدود برای اندروید و آیفون  🔹نحوه اتصال داخل اندروید کلیک کن👉  🔹نحوه اتصال داخل آیفون کلیک کن👉  اینترنت آزاد برای همه, یا هیچکس 🖤  T.me/MiTiVPN 🥇
+Link: https://t.mehttps://t.me/mitivpn/16731
 ----------------------------------------
 
-Post #9:
-Прокси отключился? Возьми новый ⚡  Хочешь бесплатный выделенный прокси? Забери здесь 👇  Без рекламы • Быстро • Стабильно 🚀
-Link: https://t.mehttps://t.me/ProxyMTProto/47147
+Post #17:
+ملی شکن کمکی ⚡💥.npvt
+Link: https://t.mehttps://t.me/mitivpn/16735
 ----------------------------------------
 
-Post #10:
-Server: 77.239.125.158 Port: 443 Secret: ee15465e6f97a4ca60ab5db03332290d6b77622e7275 @ProxyMTProto
-Link: https://t.mehttps://t.me/ProxyMTProto/47148
+Post #18:
+🛡 کانفیگ فول پرسرعت برای نت ملی نپستر مخصوص دانلود وب گردی نامحدود برای اندروید و آیفون  🔹نحوه اتصال داخل اندروید کلیک کن👉  🔹نحوه اتصال داخل آیفون کلیک کن👉  اینترنت آزاد برای همه, یا هیچکس 🖤  T.me/MiTiVPN 🥇
+Link: https://t.mehttps://t.me/mitivpn/16737
 ----------------------------------------
 
-Total new posts: 10
+Post #19:
+شاهکار ⚡.npvt
+Link: https://t.mehttps://t.me/mitivpn/16739
+----------------------------------------
 
+Post #20:
+🛡 کانفیگ فول پرسرعت برای نت ملی نپستر مخصوص دانلود وب گردی نامحدود برای اندروید و آیفون  🔹نحوه اتصال داخل اندروید کلیک کن👉  🔹نحوه اتصال داخل آیفون کلیک کن👉  اینترنت آزاد برای همه, یا هیچکس 🖤  T.me/MiTiVPN 🥇
+Link: https://t.mehttps://t.me/mitivpn/16771
+----------------------------------------
 
-========================================
-Run time: 2026-05-01 13:24:02
-========================================
-
-No new posts found.
+Total new posts: 20
 ```
 
-*Last updated: 2026-05-01 13:24:02 UTC*
+*Last updated: 2026-05-01 13:53:00 UTC*
