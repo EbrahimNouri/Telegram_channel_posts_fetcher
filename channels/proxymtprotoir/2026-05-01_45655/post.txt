@@ -1,0 +1,23 @@
+Channel: @proxymtprotoir
+Post ID: 45655
+Date: 2026-05-01
+Link: https://t.mehttps://t.me/proxymtprotoir/45655
+Archived: 2026-05-01 20:13:59
+========================================
+
+- کانفیگِ جدید برایِ SlipNet -
+تست شده با 🛜 ایرانسل ، 🛜 مخابرات ، 🛜 همراه اول ( حتما با بقیه ی اینترنت ها چک کنید )
+
+slipnet-enc://AT9+xzKB1WvM0ijzy6sf0+FjP/XRX1Rlb5kg35uhJAvJMKEguNWxzXJ/YyRmkWZU4FBv7ymtmMp1qSPrxyq6G04z82dW7WOtTgrHcwsseCJbRelqevBn1Q6NflMSwydeq9LGJJAaki5mFzbgeodjE89rsN7ULVNPKWlJDA2hNAD+qiOhL4pWJ6vLEjPgca+202VVwrl/NiRHY4k37Y+FJlw7w071uUwZgqrf1Hknk9XBqksv+m+1D/1Ad+wvJPCkUUDctnxxWI7OdcZiepTayRrcCzXshST4+56pAVhCNXdmLp62WRgn5+MUsqXVZla6/bN7k2hAaEY5lr9leyKjO/vnTib5JeQy2M9lRRnyZHhH9M0JwM1ofrQdMTgpW9xusPpyFh3qXjI+n2qoOfgnpn03gnf/3ecQiHE/amze93+qx1G52trZ54k5W2a824kXG4bbdRaNAkwVDTwq6WgEJ0YnVIYt5vAZz4iRU7npf7rnCeujFB0HhDzcphMAfg48DuZNesjRsoQSJ1XZh+g1W7jCbRthe36PsuIfD0YrpXvRiOqknxV9kKReV29XLnk5/GzSUAmcO5iBnWI=
+
+⚪️حتما از تنظیمات VPN MTU رو رویِ 512 بگذارید و تنظیمات رو ذخیره کنید .
+
+⚪️زمانی که کانفیگ رو ادد کردید قبل از اتصال رویِ علامتِ مداد کنارِ کانفیگ بزنید و DNS Query Size رو هم یکبار رویِ 50 بزارید و تست کنید و هم یکبار 60 بزارید و متصل بشید .
+
+⚪️حتما از تنظیمات گزینه‌ ی Proxy-only Mode رو‌ فعال کنید . بعد از اینکه کانفیگ متصل شد ، به یکی از پروکسی هایِ زیر در تلگرام متصل شَوید .
+
+🔗 : https://t.me/socks?server=127.0.0.1&port=10880
+
+🔗 : https://t.me/socks?server=0.0.0.0&port=10880
+
+✅ @ProxyMTProtoIR
