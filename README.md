@@ -32,17 +32,10 @@ Automatic Telegram channel posts logger using GitHub Actions.
 
 
 
+
 ## Latest Channel Posts
 
 ```
-Link: https://t.mehttps://t.me/ProxyMTProto/47151
-----------------------------------------
-
-Post #12:
-Server: gproxy-sosavpn.duckdns.org Port: 8443 Secret: bfb77f1c4bf8a5c16eb5a3d93954ce69 @ProxyMTProto
-Link: https://t.mehttps://t.me/ProxyMTProto/47152
-----------------------------------------
-
 Post #13:
 Server: 172.234.115.238 Port: 443 Secret: 3a3365be03d6bc13518d65e70a3146c2 @ProxyMTProto
 Link: https://t.mehttps://t.me/ProxyMTProto/47153
@@ -84,6 +77,14 @@ Link: https://t.mehttps://t.me/ProxyMTProto/47160
 ----------------------------------------
 
 Total new posts: 12 / Checked: 20
+
+
+========================================
+Channel: @proxymtproto
+Run time: 2026-05-01 15:04:29
+========================================
+
+No new posts. Checked: 20 posts
 ```
 
-*Last updated: 2026-05-01 15:04:11 UTC*
+*Last updated: 2026-05-01 15:04:30 UTC*
