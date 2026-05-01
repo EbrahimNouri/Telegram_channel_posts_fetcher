@@ -1,27 +1,26 @@
-# Telegram Channel Posts Fetcher 🚀
+# Telegram Channel Posts Fetcher
 
-یه پروژه ساده برای گرفتن آخرین پست‌های کانال‌های عمومی تلگرام با GitHub Actions.
+Automatic Telegram channel posts logger using GitHub Actions.
 
-## 📖 داستان پروژه
+## How it Works
 
-سلام! من این پروژه رو ساختم تا یاد بگیرم چطور میشه از **GitHub Actions** (ورکرهای گیت‌هاب) برای کارهایی که اینترنت ایران روشون محدودیت داره استفاده کرد. 
+- Runs every 6 hours
+- Fetches latest posts from a public Telegram channel
+- Saves new posts to `posts_log.txt`
+- Updates README with latest posts
 
-### مشکل چی بود؟
-- اینترنت ایران روی تلگرام فیلتره
-- می‌خواستم محتوای یه کانال عمومی رو بخونم
-- نمی‌خواستم پروکسی یا VPN راه بندازم
+## Setup
 
-### راه‌حل چی شد؟
-از ورکرهای **GitHub Actions** استفاده کردم! این ورکرها توی سرورهای آمریکا اجرا میشن، پس:
-- بدون فیلتر به اینترنت دسترسی دارن
-- می‌تونن توی زمان‌های مشخص اجرا بشن
-- کاملاً رایگان هستن (برای پروژه‌های عمومی)
+1. Fork this repository
+2. Enable read/write permissions in Settings > Actions > General
+3. Replace `your_channel` in `Main.java` with target channel username
+4. Push changes to main branch
 
-## 🛠️ تکنولوژی‌ها
+## Files
 
-- **Java** - زبان برنامه‌نویسی
-- **Apache Ant** - برای build خودکار
-- **GitHub Actions** - اجرای خودکار کد
-- **t.me/s/** - نسخه وب عمومی تلگرام
+- `Main.java` - Main application
+- `build.xml` - Ant build configuration
+- `.github/workflows/ant.yml` - GitHub Actions workflow
+- `posts_log.txt` - Posts log file
 
-## 📂 ساختار پروژه
+## Latest Channel Posts
