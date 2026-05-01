@@ -264,46 +264,87 @@ public class Main {
         return null;
     }
     
-    private static String downloadMedia(HttpClient client, String mediaUrl, String prefix) {
-        try {
-            HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(mediaUrl))
-                .header("User-Agent", "Mozilla/5.0")
-                .timeout(java.time.Duration.ofMinutes(2))
-                .GET()
-                .build();
-            
-            HttpResponse<InputStream> response = client.send(
-                request, HttpResponse.BodyHandlers.ofInputStream()
-            );
-            
-            if (response.statusCode() != 200) return null;
-            
-            String contentType = response.headers().firstValue("Content-Type").orElse("");
-            String ext = ".jpg";
-            if (contentType.contains("png")) ext = ".png";
-            else if (contentType.contains("gif")) ext = ".gif";
-            else if (contentType.contains("webp")) ext = ".webp";
-            else if (contentType.contains("mp4")) ext = ".mp4";
-            else if (contentType.contains("pdf")) ext = ".pdf";
-            else if (contentType.contains("zip")) ext = ".zip";
-            
-            String fileName = prefix + "_" + System.currentTimeMillis() + ext;
-            Path filePath = Paths.get(MEDIA_DIR, fileName);
-            
-            Files.copy(response.body(), filePath, StandardCopyOption.REPLACE_EXISTING);
-            
-            long size = Files.size(filePath);
-            if (size > MAX_DOWNLOAD_SIZE) {
-                Files.delete(filePath);
-                return null;
-            }
-            
-            return fileName;
-        } catch (Exception e) {
+  private static String downloadMedia(HttpClient client, String mediaUrl, String prefix) {
+    try {
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(mediaUrl))
+            .header("User-Agent", "Mozilla/5.0")
+            .timeout(java.time.Duration.ofMinutes(2))
+            .GET()
+            .build();
+        
+        HttpResponse<InputStream> response = client.send(
+            request, HttpResponse.BodyHandlers.ofInputStream()
+        );
+        
+        if (response.statusCode() != 200) return null;
+        
+        // Check content length to skip huge files
+        String contentLength = response.headers().firstValue("Content-Length").orElse("0");
+        long size = Long.parseLong(contentLength);
+        if (size > MAX_DOWNLOAD_SIZE || size == 0) {
+            System.out.println("  Skipping (size: " + size + ")");
             return null;
         }
+        
+        // Determine extension from Content-Type
+        String contentType = response.headers().firstValue("Content-Type").orElse("");
+        String ext = getExtension(contentType, mediaUrl);
+        
+        String fileName = prefix + "_" + System.currentTimeMillis() + ext;
+        Path filePath = Paths.get(MEDIA_DIR, fileName);
+        
+        Files.copy(response.body(), filePath, StandardCopyOption.REPLACE_EXISTING);
+        
+        long actualSize = Files.size(filePath);
+        System.out.println("  Downloaded: " + fileName + " (" + actualSize + " bytes)");
+        
+        return fileName;
+    } catch (Exception e) {
+        System.out.println("  Download failed: " + e.getMessage());
+        return null;
     }
+}
+
+// متد کمکی برای تشخیص پسوند
+private static String getExtension(String contentType, String url) {
+    // اول از URL پسوند رو استخراج کن
+    try {
+        String path = new URI(url).getPath();
+        String fileName = Paths.get(path).getFileName().toString();
+        // حذف query string
+        if (fileName.contains("?")) {
+            fileName = fileName.substring(0, fileName.indexOf("?"));
+        }
+        // اگه پسوند داره، استفاده کن
+        if (fileName.contains(".") && fileName.lastIndexOf(".") < fileName.length() - 1) {
+            String ext = fileName.substring(fileName.lastIndexOf("."));
+            // تمیز کردن پسوند
+            ext = ext.replaceAll("[^a-zA-Z0-9.]", "");
+            if (ext.length() > 1 && ext.length() < 10) {
+                return ext;
+            }
+        }
+    } catch (Exception ignored) {}
+    
+    // بعد از Content-Type تشخیص بده
+    if (contentType.contains("jpeg") || contentType.contains("jpg")) return ".jpg";
+    if (contentType.contains("png")) return ".png";
+    if (contentType.contains("gif")) return ".gif";
+    if (contentType.contains("webp")) return ".webp";
+    if (contentType.contains("mp4") || contentType.contains("video")) return ".mp4";
+    if (contentType.contains("pdf")) return ".pdf";
+    if (contentType.contains("zip")) return ".zip";
+    if (contentType.contains("rar")) return ".rar";
+    if (contentType.contains("text") || contentType.contains("plain")) return ".txt";
+    if (contentType.contains("octet-stream")) return ".bin";
+    if (contentType.contains("json")) return ".json";
+    if (contentType.contains("xml")) return ".xml";
+    
+    // هیچی پیدا نشد - یه پسوند پیش‌فرض نذار، بذار بدون پسوند باشه
+    // تا کاربر بتونه هر جور خواست بازش کنه
+    return "";
+}
     
     private static String htmlUnescape(String input) {
         if (input == null) return "";
