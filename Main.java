@@ -11,7 +11,7 @@ public class Main {
         System.out.println("Hello and welcome!");
         
         // آدرس کانال تلگرام (عمومی)
-        String channelUsername = "your_channel"; // بدون @
+        String channelUsername = "proxymtproto"; // بدون @
         
         // روش ۱: استفاده از t.me/s/
         String url = "https://t.me/s/" + channelUsername;
