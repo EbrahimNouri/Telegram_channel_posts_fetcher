@@ -23,4 +23,37 @@ Automatic Telegram channel posts logger using GitHub Actions.
 - `.github/workflows/ant.yml` - GitHub Actions workflow
 - `posts_log.txt` - Posts log file
 
+
 ## Latest Channel Posts
+
+```
+
+========================================
+Run time: 2026-05-01 13:12:29
+========================================
+
+No new posts found.
+
+
+========================================
+Run time: 2026-05-01 13:13:16
+========================================
+
+No new posts found.
+
+
+========================================
+Run time: 2026-05-01 13:15:09
+========================================
+
+No new posts found.
+
+
+========================================
+Run time: 2026-05-01 13:15:39
+========================================
+
+No new posts found.
+```
+
+*Last updated: 2026-05-01 13:15:40 UTC*
