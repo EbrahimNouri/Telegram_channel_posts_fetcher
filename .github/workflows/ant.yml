@@ -6,6 +6,17 @@ on:
   push:
     branches: [ "main" ]
   workflow_dispatch:
+    inputs:
+      channel:
+        description: 'Channel username (without @)'
+        required: false
+        type: string
+        default: 'mitivpn'
+      count:
+        description: 'Number of posts to fetch'
+        required: false
+        type: string
+        default: '10'
 
 permissions:
   contents: write
@@ -29,7 +40,10 @@ jobs:
       run: ant -noinput -buildfile build.xml
     
     - name: Run Logger
-      run: java -cp build:lib/* Main
+      env:
+        CHANNEL_USERNAME: ${{ github.event.inputs.channel || 'mitivpn' }}
+        POST_COUNT: ${{ github.event.inputs.count || '10' }}
+      run: java -cp build Main
     
     - name: Update README with latest posts
       run: |
