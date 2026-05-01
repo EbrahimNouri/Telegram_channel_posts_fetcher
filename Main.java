@@ -9,12 +9,12 @@ import java.nio.file.*;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        System.out.println("Hello and welcome!");
+        System.out.println("Starting Telegram channel reader...");
         
-        String channelUsername = "your_channel"; // بدون @
+        String channelUsername = "your_channel"; // without @
         String logFile = "posts_log.txt";
         
-        // لاگ فعلی رو می‌خونیم که پست‌های تکراری رو تشخیص بدیم
+        // Read existing log to detect duplicates
         String existingContent = "";
         File file = new File(logFile);
         if (file.exists()) {
@@ -26,22 +26,20 @@ public class Main {
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(url))
-            .header("User-Agent", "Mozilla/5.0")
+            .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
             .GET()
             .build();
         
         System.out.println("Fetching posts from: " + channelUsername);
+        System.out.println("URL: " + url);
         
         HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
         String html = response.body();
         
-        // استخراج متن و لینک پست‌ها
+        // Extract posts from HTML
         Pattern postPattern = Pattern.compile(
             "<div class=\"tgme_widget_message_text[^\"]*\"[^>]*>(.*?)</div>", 
             Pattern.DOTALL
-        );
-        Pattern datePattern = Pattern.compile(
-            "<time[^>]*datetime=\"([^\"]+)\"[^>]*>"
         );
         Pattern linkPattern = Pattern.compile(
             "<a class=\"tgme_widget_message_date\" href=\"([^\"]+)\">"
@@ -52,7 +50,7 @@ public class Main {
         
         StringBuilder newPosts = new StringBuilder();
         newPosts.append("\n========================================\n");
-        newPosts.append("📅 اجرای جدید: " + LocalDateTime.now().format(
+        newPosts.append("Run time: " + LocalDateTime.now().format(
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
         ));
         newPosts.append("\n========================================\n\n");
@@ -65,17 +63,17 @@ public class Main {
             String post = postMatcher.group(1);
             String link = "https://t.me" + linkMatcher.group(1);
             
-            // پاک کردن تگ‌های HTML
-            post = post.replaceAll("<br/?>", "\n");
+            // Clean HTML tags
+            post = post.replaceAll("<br/?>", " ");
             post = post.replaceAll("<[^>]+>", "").trim();
             post = htmlUnescape(post);
             
-            // چک کردن تکراری نبودن
+            // Check for duplicates
             if (!existingContent.contains(link)) {
                 newCount++;
-                newPosts.append("📝 پست #").append(count).append(":\n");
+                newPosts.append("Post #").append(count).append(":\n");
                 newPosts.append(post).append("\n");
-                newPosts.append("🔗 ").append(link).append("\n");
+                newPosts.append("Link: ").append(link).append("\n");
                 newPosts.append("----------------------------------------\n\n");
                 
                 System.out.println("New post found: #" + count);
@@ -83,26 +81,19 @@ public class Main {
         }
         
         if (newCount == 0) {
-            newPosts.append("⚠️ هیچ پست جدیدی پیدا نشد!\n\n");
+            newPosts.append("No new posts found.\n\n");
             System.out.println("No new posts found.");
         } else {
-            newPosts.append("✅ تعداد پست‌های جدید: ").append(newCount).append("\n\n");
+            newPosts.append("Total new posts: ").append(newCount).append("\n\n");
             System.out.println("Added " + newCount + " new posts.");
         }
         
-        // اضافه کردن به فایل
-        FileWriter fw = new FileWriter(logFile, true); // true = append mode
+        // Append to file
+        FileWriter fw = new FileWriter(logFile, true);
         fw.write(newPosts.toString());
         fw.close();
         
         System.out.println("Log saved to: " + logFile);
-        
-        // Upload artifact for GitHub Actions
-        System.out.println("::set-output name=logfile::" + logFile);
-        
-        for (int i = 1; i <= 5; i++) {
-            System.out.println("i = " + i);
-        }
     }
     
     private static String htmlUnescape(String input) {
@@ -112,6 +103,10 @@ public class Main {
             .replace("&gt;", ">")
             .replace("&quot;", "\"")
             .replace("&#39;", "'")
-            .replace("&nbsp;", " ");
+            .replace("&nbsp;", " ")
+            .replace("&zwnj;", "")
+            .replace("&nbsp;", " ")
+            .replaceAll("&#\\d+;", "")
+            .replaceAll("&[a-z]+;", "");
     }
 }
