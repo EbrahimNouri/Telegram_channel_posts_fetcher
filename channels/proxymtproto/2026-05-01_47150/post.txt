@@ -1,0 +1,11 @@
+Channel: @proxymtproto
+Post ID: 47150
+Date: 2026-05-01
+Link: https://t.mehttps://t.me/ProxyMTProto/47150
+Archived: 2026-05-01 20:27:38
+========================================
+
+Server: 91.108.239.182
+Port: 443
+Secret: ee7b4ae6f614725c06bb224c6ffca974e479616e6465782e7275
+@ProxyMTProto
