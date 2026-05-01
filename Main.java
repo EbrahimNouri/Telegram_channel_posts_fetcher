@@ -11,8 +11,25 @@ public class Main {
     public static void main(String[] args) throws Exception {
         System.out.println("Starting Telegram channel reader...");
         
-        // String channelUsername = "proxymtproto"; // without @
-        String channelUsername = "mitivpn"; // without @
+        // Get values from environment variables
+        String channelUsername = System.getenv("CHANNEL_USERNAME");
+        String postCountStr = System.getenv("POST_COUNT");
+        
+        // Default values if not set
+        if (channelUsername == null || channelUsername.trim().isEmpty()) {
+            channelUsername = "mitivpn";
+            System.out.println("CHANNEL_USERNAME not set, using default: " + channelUsername);
+        }
+        
+        int maxPosts = 100;
+        if (postCountStr != null && !postCountStr.trim().isEmpty()) {
+            try {
+                maxPosts = Integer.parseInt(postCountStr.trim());
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid POST_COUNT, using default: " + maxPosts);
+            }
+        }
+        
         String logFile = "posts_log.txt";
         
         // Read existing log to detect duplicates
@@ -32,6 +49,7 @@ public class Main {
             .build();
         
         System.out.println("Fetching posts from: " + channelUsername);
+        System.out.println("Max posts: " + maxPosts);
         System.out.println("URL: " + url);
         
         HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
@@ -51,6 +69,7 @@ public class Main {
         
         StringBuilder newPosts = new StringBuilder();
         newPosts.append("\n========================================\n");
+        newPosts.append("Channel: @").append(channelUsername).append("\n");
         newPosts.append("Run time: " + LocalDateTime.now().format(
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
         ));
@@ -59,7 +78,7 @@ public class Main {
         int count = 0;
         int newCount = 0;
         
-        while (postMatcher.find() && linkMatcher.find() && count < 100) {
+        while (postMatcher.find() && linkMatcher.find() && count < maxPosts) {
             count++;
             String post = postMatcher.group(1);
             String link = "https://t.me" + linkMatcher.group(1);
@@ -82,11 +101,11 @@ public class Main {
         }
         
         if (newCount == 0) {
-            newPosts.append("No new posts found.\n\n");
-            System.out.println("No new posts found.");
+            newPosts.append("No new posts found. (Checked ").append(count).append(" posts)\n\n");
+            System.out.println("No new posts found. Total checked: " + count);
         } else {
-            newPosts.append("Total new posts: ").append(newCount).append("\n\n");
-            System.out.println("Added " + newCount + " new posts.");
+            newPosts.append("Total new posts: ").append(newCount).append(" / Checked: ").append(count).append("\n\n");
+            System.out.println("Added " + newCount + " new posts. Total checked: " + count);
         }
         
         // Append to file
@@ -98,6 +117,7 @@ public class Main {
     }
     
     private static String htmlUnescape(String input) {
+        if (input == null) return "";
         return input
             .replace("&amp;", "&")
             .replace("&lt;", "<")
@@ -106,7 +126,6 @@ public class Main {
             .replace("&#39;", "'")
             .replace("&nbsp;", " ")
             .replace("&zwnj;", "")
-            .replace("&nbsp;", " ")
             .replaceAll("&#\\d+;", "")
             .replaceAll("&[a-z]+;", "");
     }
