@@ -25,3 +25,35 @@
 - **t.me/s/** - نسخه وب عمومی تلگرام
 
 ## 📂 ساختار پروژه
+
+
+
+## 🚀 چطور کار میکنه؟
+
+### ۱. GitHub Actions چیه؟
+یه سرویس از گیت‌هابه که بهت اجازه میده کدت رو توی سرورهای ابری اجرا کنی. مثلاً:
+- هر وقت کد جدید push کنی، خودکار اجرا بشه
+- هر روز ساعت ۸ صبح اجرا بشه
+- وقتی issue جدید باز بشه، اجرا بشه
+
+### ۲. فایل ant.yml چیکار میکنه؟
+```yaml
+name: Telegram Posts Fetcher    # اسم workflow
+
+on:
+  push:
+    branches: [ "main" ]       # هر push روی main اجرا بشه
+  workflow_dispatch:            # بشه دستی هم اجراش کرد
+
+jobs:
+  build:
+    runs-on: ubuntu-latest     # سیستم‌عامل سرور
+    
+    steps:
+    - uses: actions/checkout@v4  # کد رو دانلود کن
+    - name: Set up JDK 11       # جاوا رو نصب کن
+      uses: actions/setup-java@v4
+    - name: Build with Ant      # پروژه رو کامپایل کن
+      run: ant -noinput -buildfile build.xml
+    - name: Run                 # پروژه رو اجرا کن
+      run: java -cp build:lib/* Main
