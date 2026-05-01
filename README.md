@@ -31,58 +31,59 @@ Automatic Telegram channel posts logger using GitHub Actions.
 
 
 
+
 ## Latest Channel Posts
 
 ```
+Link: https://t.mehttps://t.me/ProxyMTProto/47151
+----------------------------------------
+
+Post #12:
+Server: gproxy-sosavpn.duckdns.org Port: 8443 Secret: bfb77f1c4bf8a5c16eb5a3d93954ce69 @ProxyMTProto
+Link: https://t.mehttps://t.me/ProxyMTProto/47152
+----------------------------------------
+
+Post #13:
+Server: 172.234.115.238 Port: 443 Secret: 3a3365be03d6bc13518d65e70a3146c2 @ProxyMTProto
+Link: https://t.mehttps://t.me/ProxyMTProto/47153
+----------------------------------------
+
+Post #14:
+Server: bin.mdnk.fun Port: 443 Secret: ee528a8923aaf3441d3a3652bd37e33a56706574726f766963682e7275 @ProxyMTProto
+Link: https://t.mehttps://t.me/ProxyMTProto/47154
+----------------------------------------
+
+Post #15:
+Server: 93.77.161.19 Port: 443 Secret: 36f56fd415017632c3d5af46ec77a518 @ProxyMTProto
+Link: https://t.mehttps://t.me/ProxyMTProto/47155
+----------------------------------------
+
+Post #16:
+Server: 154.83.208.125 Port: 7443 Secret: ee38b9b0c4593e5f066d687ddcca5e636c6f7564666c6172652e636f6d @ProxyMTProto
+Link: https://t.mehttps://t.me/ProxyMTProto/47156
+----------------------------------------
+
 Post #17:
-ملی شکن کمکی ⚡💥.npvt
-Link: https://t.mehttps://t.me/mitivpn/16735
+Server: mtp.webvirt.cloud Port: 443 Secret: ee938dd87467bc49301de2e9765cf20f4374656c2e776562766972742e636c6f7564 @ProxyMTProto
+Link: https://t.mehttps://t.me/ProxyMTProto/47157
 ----------------------------------------
 
 Post #18:
-🛡 کانفیگ فول پرسرعت برای نت ملی نپستر مخصوص دانلود وب گردی نامحدود برای اندروید و آیفون  🔹نحوه اتصال داخل اندروید کلیک کن👉  🔹نحوه اتصال داخل آیفون کلیک کن👉  اینترنت آزاد برای همه, یا هیچکس 🖤  T.me/MiTiVPN 🥇
-Link: https://t.mehttps://t.me/mitivpn/16737
+Server: concord.servervless.ru Port: 443 Secret: ee25cbb92cbe5ef91a21da4e802e60675f6164732e78352e7275 @ProxyMTProto
+Link: https://t.mehttps://t.me/ProxyMTProto/47158
 ----------------------------------------
 
 Post #19:
-شاهکار ⚡.npvt
-Link: https://t.mehttps://t.me/mitivpn/16739
+Server: concord.servervless.ru Port: 443 Secret: ee25cbb92cbe5ef91a21da4e802e60675f6164732e78352e7275 @ProxyMTProto
+Link: https://t.mehttps://t.me/ProxyMTProto/47159
 ----------------------------------------
 
 Post #20:
-🛡 کانفیگ فول پرسرعت برای نت ملی نپستر مخصوص دانلود وب گردی نامحدود برای اندروید و آیفون  🔹نحوه اتصال داخل اندروید کلیک کن👉  🔹نحوه اتصال داخل آیفون کلیک کن👉  اینترنت آزاد برای همه, یا هیچکس 🖤  T.me/MiTiVPN 🥇
-Link: https://t.mehttps://t.me/mitivpn/16771
+Server: 5.231.56.165 Port: 443 Secret: 7c81481b8a23812706cbd96fb2c8b0b8 @ProxyMTProto
+Link: https://t.mehttps://t.me/ProxyMTProto/47160
 ----------------------------------------
 
-Total new posts: 20
-
-
-========================================
-Run time: 2026-05-01 15:00:03
-========================================
-
-Post #20:
-۵۰ گیگ اینترنت ایرانسل با قیمت ۳۸۰تومن  یه اینترنت پرو هم داریم که اونم ۵۰ گیگه و قیمتش هست ۲/۵ میلیون تومن  مسئولان معتقدند با این ۵۰ گیگ ۳۸۰ تومنیه امنیت کشور به خطر میوفته اما با اون ۵۰ گیگ ۲/۵ میلیونیه نه :))
-Link: https://t.mehttps://t.me/mitivpn/16773
-----------------------------------------
-
-Total new posts: 1
-
-
-========================================
-Channel: @mitivpn
-Run time: 2026-05-01 15:01:10
-========================================
-
-No new posts found. (Checked 20 posts)
-
-
-========================================
-Channel: @mitivpn
-Run time: 2026-05-01 15:02:14
-========================================
-
-No new posts found. (Checked 10 posts)
+Total new posts: 12 / Checked: 20
 ```
 
-*Last updated: 2026-05-01 15:02:14 UTC*
+*Last updated: 2026-05-01 15:04:11 UTC*
