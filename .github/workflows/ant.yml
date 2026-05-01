@@ -1,4 +1,4 @@
-name: Telegram Multi-Channel Logger
+name: Telegram Channel Archiver
 
 on:
   schedule:
@@ -39,7 +39,7 @@ jobs:
     - name: Build with Ant
       run: ant -noinput -buildfile build.xml
     
-    - name: Run Logger
+    - name: Run Archiver
       env:
         CHANNEL_USERNAME: ${{ github.event.inputs.channel || 'proxymtproto' }}
         POST_COUNT: ${{ github.event.inputs.count || '100' }}
@@ -49,17 +49,13 @@ jobs:
       run: |
         echo "# Telegram Channels Archive" > README.md
         echo "" >> README.md
-        echo "| Channel | Posts | Last Updated |" >> README.md
-        echo "|---------|-------|-------------|" >> README.md
-        
         for dir in channels/*/; do
           if [ -d "$dir" ]; then
             channel_name=$(basename "$dir")
-            post_count=$(grep -c "post" "$dir/posts.html" 2>/dev/null || echo "0")
-            echo "| [@$channel_name]($dir/posts.html) | $post_count | $(date +'%Y-%m-%d') |" >> README.md
+            post_count=$(ls -1d "$dir"/*/ 2>/dev/null | wc -l)
+            echo "- [@$channel_name](${dir}index.html) - $post_count posts" >> README.md
           fi
         done
-        
         echo "" >> README.md
         echo "*Auto-updated every hour*" >> README.md
     
@@ -71,7 +67,7 @@ jobs:
         if git diff --staged --quiet; then
           echo "No changes"
         else
-          git commit -m "Update channels - $(date +'%Y-%m-%d %H:%M:%S')"
+          git commit -m "Archive channels - $(date +'%Y-%m-%d %H:%M:%S')"
           git push
         fi
     
