@@ -11,12 +11,12 @@ on:
         description: 'Channel username (without @)'
         required: false
         type: string
-        default: 'mitivpn'
+        default: 'proxymtproto'
       count:
         description: 'Number of posts to fetch'
         required: false
         type: string
-        default: '10'
+        default: '100'
 
 permissions:
   contents: write
@@ -41,16 +41,14 @@ jobs:
     
     - name: Run Logger
       env:
-        CHANNEL_USERNAME: ${{ github.event.inputs.channel || 'mitivpn' }}
-        POST_COUNT: ${{ github.event.inputs.count || '10' }}
+        CHANNEL_USERNAME: ${{ github.event.inputs.channel || 'proxymtproto' }}
+        POST_COUNT: ${{ github.event.inputs.count || '100' }}
       run: java -cp build Main
     
     - name: Update README with latest posts
       run: |
-        # Read the last 50 lines of log file
         LAST_POSTS=$(tail -50 posts_log.txt)
         
-        # Create a formatted section for README
         cat > readme_posts_section.md << EOF
         
         ## Latest Channel Posts
@@ -62,13 +60,10 @@ jobs:
         *Last updated: $(date +'%Y-%m-%d %H:%M:%S') UTC*
         EOF
         
-        # Check if README already has the posts section
         if grep -q "## Latest Channel Posts" README.md; then
-          # Replace existing section
           sed -i '/## Latest Channel Posts/,$d' README.md
         fi
         
-        # Append the new posts section
         cat readme_posts_section.md >> README.md
     
     - name: Commit and Push if Changed
