@@ -223,3 +223,16 @@ Run time: 2026-05-01 16:04:35
 
 No new posts. Checked: 20 posts
 
+
+========================================
+Channel: @proxymtproto
+Run time: 2026-05-01 16:59:20
+========================================
+
+Post #20:
+Server: proxytg.live Port: 443 Secret: ee347358dc309fbf96304b28460ef7cd7a70726f787974672e6c697665 @ProxyMTProto
+Link: https://t.mehttps://t.me/ProxyMTProto/47163
+----------------------------------------
+
+New: 1 / Checked: 20
+
