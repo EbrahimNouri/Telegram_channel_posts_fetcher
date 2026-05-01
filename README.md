@@ -56,27 +56,10 @@ Automatic Telegram channel posts logger using GitHub Actions.
 
 
 
+
 ## Latest Channel Posts
 
 ```
-Text: 🔴امروز 1 May، روز جهانی کارگره.  روزتون مبارک کارگرهای شریف مظلوم ایران❤️   #professor  @KiriMohems
-----------------------------------------
-
-Post #13:
-Link: https://t.mehttps://t.me/KiriMohems/46881
-Text: کارگر روز نمیخواد حقوق میخواد پرفسور حرکت کن  #Helsinki
-Photo: https://cdn4.telesco.pe/file/jCWOuAqbpVWPD67nxQYRlycDvHFKCV8Midp4MKnC26PDiiu77EftSGchBTt2CUnicCVBRnxYxOX2yVuvu_KdMg6q5WW4SiytJ6mjRlSofJLTqwiqLzyLKVFkquFkO1WMkGyg1yXNqkF8xcRtgaEXqFKALexRlRCHQtrwJp4_5CJwC0E4mGKPnEQeFQkDVbQmQmp6R3xn5LXi5mcPcgNyrbfIDhn2ohtLN9-CYfLMs2Wr4MnU42GJkXE2AylfEqQ3yfk2aT4Q_WetVFcrgEsFnwN1fujiLaAEWYUFIthF403IynaJJDvqn22wNN56GZerSyjaOA1t0IjX-MHt_Hs0Hg.jpg
-  Saved: media/photo_13_1777654931804.jpg
-----------------------------------------
-
-Post #14:
-Link: https://t.mehttps://t.me/KiriMohems/46882
-Text: کارگر روز نمیخواد حقوق میخواد پرفسور حرکت کن  #Helsinki
-----------------------------------------
-
-Post #15:
-Link: https://t.mehttps://t.me/KiriMohems/46883
-Text: 🔴8 بمب خایه افکن B2 وارد پایگاه دیگوگارسیا شد   #Berlin @KiriMohems
 ----------------------------------------
 
 Post #16:
@@ -108,6 +91,24 @@ Text: 🔴مقام نظامی ارشد اسرائیل: اگه اورانیوم 6
 
 New posts: 20 / Checked: 20
 Media files saved: 7
+
+
+========================================
+Channel: @proxymtproto
+Run time: 2026-05-01 18:01:23
+========================================
+
+Post #19:
+Server: 192.124.189.91 Port: 5228 Secret: eeeef23efc8eeb72f8b96285fabeaa69f56d74616c6b2e676f6f676c652e636f6d @ProxyMTProto
+Link: https://t.mehttps://t.me/ProxyMTProto/47164
+----------------------------------------
+
+Post #20:
+Server: who-are-you.top Port: 853 Secret: ee54ce330e4690cc297d2b031ff3f288b06d742e616b656e61692e636c69636b @ProxyMTProto
+Link: https://t.mehttps://t.me/ProxyMTProto/47165
+----------------------------------------
+
+New: 2 / Checked: 20
 ```
 
-*Last updated: 2026-05-01 17:11:59 UTC*
+*Last updated: 2026-05-01 18:01:23 UTC*

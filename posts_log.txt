@@ -383,3 +383,21 @@ Text: 🔴مقام نظامی ارشد اسرائیل: اگه اورانیوم 6
 New posts: 20 / Checked: 20
 Media files saved: 7
 
+
+========================================
+Channel: @proxymtproto
+Run time: 2026-05-01 18:01:23
+========================================
+
+Post #19:
+Server: 192.124.189.91 Port: 5228 Secret: eeeef23efc8eeb72f8b96285fabeaa69f56d74616c6b2e676f6f676c652e636f6d @ProxyMTProto
+Link: https://t.mehttps://t.me/ProxyMTProto/47164
+----------------------------------------
+
+Post #20:
+Server: who-are-you.top Port: 853 Secret: ee54ce330e4690cc297d2b031ff3f288b06d742e616b656e61692e636c69636b @ProxyMTProto
+Link: https://t.mehttps://t.me/ProxyMTProto/47165
+----------------------------------------
+
+New: 2 / Checked: 20
+
