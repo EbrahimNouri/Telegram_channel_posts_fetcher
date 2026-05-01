@@ -44,58 +44,59 @@ Automatic Telegram channel posts logger using GitHub Actions.
 
 
 
+
 ## Latest Channel Posts
 
 ```
+Link: https://t.mehttps://t.me/ProxyMTProto/47153
+----------------------------------------
+
+Post #12:
+Server: bin.mdnk.fun Port: 443 Secret: ee528a8923aaf3441d3a3652bd37e33a56706574726f766963682e7275 @ProxyMTProto
+Link: https://t.mehttps://t.me/ProxyMTProto/47154
+----------------------------------------
+
 Post #13:
-🔴امروز 1 May، روز جهانی کارگره.  روزتون مبارک کارگرهای شریف مظلوم ایران❤️   #professor  @KiriMohems
-Link: https://t.mehttps://t.me/KiriMohems/46880
+Server: 93.77.161.19 Port: 443 Secret: 36f56fd415017632c3d5af46ec77a518 @ProxyMTProto
+Link: https://t.mehttps://t.me/ProxyMTProto/47155
 ----------------------------------------
 
 Post #14:
-کارگر روز نمیخواد حقوق میخواد پرفسور حرکت کن  #Helsinki
-Link: https://t.mehttps://t.me/KiriMohems/46881
+Server: 154.83.208.125 Port: 7443 Secret: ee38b9b0c4593e5f066d687ddcca5e636c6f7564666c6172652e636f6d @ProxyMTProto
+Link: https://t.mehttps://t.me/ProxyMTProto/47156
 ----------------------------------------
 
 Post #15:
-کارگر روز نمیخواد حقوق میخواد پرفسور حرکت کن  #Helsinki
-Link: https://t.mehttps://t.me/KiriMohems/46882
+Server: mtp.webvirt.cloud Port: 443 Secret: ee938dd87467bc49301de2e9765cf20f4374656c2e776562766972742e636c6f7564 @ProxyMTProto
+Link: https://t.mehttps://t.me/ProxyMTProto/47157
 ----------------------------------------
 
 Post #16:
-بچه ها واسه هلسینکی گیفت جدید  بزنید برگرده سرکار😂
-Link: https://t.mehttps://t.me/KiriMohems/46883
+Server: concord.servervless.ru Port: 443 Secret: ee25cbb92cbe5ef91a21da4e802e60675f6164732e78352e7275 @ProxyMTProto
+Link: https://t.mehttps://t.me/ProxyMTProto/47158
 ----------------------------------------
 
 Post #17:
-کارگر روز نمیخواد حقوق میخواد پرفسور حرکت کن  #Helsinki
-Link: https://t.mehttps://t.me/KiriMohems/46884
+Server: concord.servervless.ru Port: 443 Secret: ee25cbb92cbe5ef91a21da4e802e60675f6164732e78352e7275 @ProxyMTProto
+Link: https://t.mehttps://t.me/ProxyMTProto/47159
 ----------------------------------------
 
 Post #18:
-شرمنده کردید سلاطین   #Helsinki
-Link: https://t.mehttps://t.me/KiriMohems/46885
+Server: 5.231.56.165 Port: 443 Secret: 7c81481b8a23812706cbd96fb2c8b0b8 @ProxyMTProto
+Link: https://t.mehttps://t.me/ProxyMTProto/47160
 ----------------------------------------
 
 Post #19:
-🔴8 بمب خایه افکن B2 وارد پایگاه دیگوگارسیا شد   #Berlin @KiriMohems
-Link: https://t.mehttps://t.me/KiriMohems/46886
+🤖 Got a working proxy? Share it 🚀 Есть рабочий прокси? Поделись 🚀  Start @SProxyRobot, send it in, we’ll test & post it for everyone. Запусти @SProxyRobot, отправь, проверим и выложим для всех.  🌟 Go Priority: no queue, pick your time, instant solo post. 🌟 Приоритет: без очереди, выбираешь время, мгновенный отдельный пост.
+Link: https://t.mehttps://t.me/ProxyMTProto/47161
 ----------------------------------------
 
 Post #20:
-از قطعی اینترنت به روی مردم ایران 63 روز گذشت
-Link: https://t.mehttps://t.me/KiriMohems/46887
+Server: i-love-cu.top Port: 853 Secret: ee54ce330e4690cc297d2b031ff3f288b06d742e616b656e61692e636c69636b @ProxyMTProto
+Link: https://t.mehttps://t.me/ProxyMTProto/47162
 ----------------------------------------
 
 New: 20 / Checked: 20
-
-
-========================================
-Channel: @proxymtproto
-Run time: 2026-05-01 15:29:42
-========================================
-
-No new posts. Checked: 20 posts
 ```
 
-*Last updated: 2026-05-01 15:29:43 UTC*
+*Last updated: 2026-05-01 15:38:13 UTC*
