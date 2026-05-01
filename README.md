@@ -110,3 +110,6 @@ Media files saved: 7
 ```
 
 *Last updated: 2026-05-01 17:06:28 UTC*
+🌐 [View Posts Page](posts.html)
+
+*Last updated: 2026-05-01 17:07:18 UTC*
