@@ -34,17 +34,10 @@ Automatic Telegram channel posts logger using GitHub Actions.
 
 
 
+
 ## Latest Channel Posts
 
 ```
-----------------------------------------
-
-Post #15:
-Server: 93.77.161.19 Port: 443 Secret: 36f56fd415017632c3d5af46ec77a518 @ProxyMTProto
-Link: https://t.mehttps://t.me/ProxyMTProto/47155
-----------------------------------------
-
-Post #16:
 Server: 154.83.208.125 Port: 7443 Secret: ee38b9b0c4593e5f066d687ddcca5e636c6f7564666c6172652e636f6d @ProxyMTProto
 Link: https://t.mehttps://t.me/ProxyMTProto/47156
 ----------------------------------------
@@ -86,6 +79,14 @@ Run time: 2026-05-01 15:05:34
 ========================================
 
 No new posts. Checked: 0 posts
+
+
+========================================
+Channel: @vpnnapsternet
+Run time: 2026-05-01 15:07:05
+========================================
+
+No new posts. Checked: 0 posts
 ```
 
-*Last updated: 2026-05-01 15:05:35 UTC*
+*Last updated: 2026-05-01 15:07:05 UTC*
