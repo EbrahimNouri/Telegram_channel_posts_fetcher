@@ -11,14 +11,12 @@ public class Main {
     public static void main(String[] args) throws Exception {
         System.out.println("Starting Telegram channel reader...");
         
-        // Get values from environment variables
         String channelUsername = System.getenv("CHANNEL_USERNAME");
         String postCountStr = System.getenv("POST_COUNT");
         
-        // Default values if not set
+        // اگه ورودی نداد، پیش‌فرض proxymtproto و ۱۰۰ پست
         if (channelUsername == null || channelUsername.trim().isEmpty()) {
-            channelUsername = "mitivpn";
-            System.out.println("CHANNEL_USERNAME not set, using default: " + channelUsername);
+            channelUsername = "proxymtproto";
         }
         
         int maxPosts = 100;
@@ -26,13 +24,16 @@ public class Main {
             try {
                 maxPosts = Integer.parseInt(postCountStr.trim());
             } catch (NumberFormatException e) {
-                System.out.println("Invalid POST_COUNT, using default: " + maxPosts);
+                maxPosts = 100;
             }
         }
         
+        System.out.println("Channel: @" + channelUsername);
+        System.out.println("Fetching up to: " + maxPosts + " posts");
+        
         String logFile = "posts_log.txt";
         
-        // Read existing log to detect duplicates
+        // Read existing log
         String existingContent = "";
         File file = new File(logFile);
         if (file.exists()) {
@@ -48,14 +49,12 @@ public class Main {
             .GET()
             .build();
         
-        System.out.println("Fetching posts from: " + channelUsername);
-        System.out.println("Max posts: " + maxPosts);
         System.out.println("URL: " + url);
         
         HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
         String html = response.body();
         
-        // Extract posts from HTML
+        // Extract posts
         Pattern postPattern = Pattern.compile(
             "<div class=\"tgme_widget_message_text[^\"]*\"[^>]*>(.*?)</div>", 
             Pattern.DOTALL
@@ -83,7 +82,7 @@ public class Main {
             String post = postMatcher.group(1);
             String link = "https://t.me" + linkMatcher.group(1);
             
-            // Clean HTML tags
+            // Clean HTML
             post = post.replaceAll("<br/?>", " ");
             post = post.replaceAll("<[^>]+>", "").trim();
             post = htmlUnescape(post);
@@ -96,24 +95,23 @@ public class Main {
                 newPosts.append("Link: ").append(link).append("\n");
                 newPosts.append("----------------------------------------\n\n");
                 
-                System.out.println("New post found: #" + count);
+                System.out.println("New: #" + count + " -> " + post.substring(0, Math.min(50, post.length())) + "...");
             }
         }
         
         if (newCount == 0) {
-            newPosts.append("No new posts found. (Checked ").append(count).append(" posts)\n\n");
-            System.out.println("No new posts found. Total checked: " + count);
+            newPosts.append("No new posts. Checked: ").append(count).append(" posts\n\n");
         } else {
-            newPosts.append("Total new posts: ").append(newCount).append(" / Checked: ").append(count).append("\n\n");
-            System.out.println("Added " + newCount + " new posts. Total checked: " + count);
+            newPosts.append("New: ").append(newCount).append(" / Checked: ").append(count).append("\n\n");
         }
         
-        // Append to file
+        // Save
         FileWriter fw = new FileWriter(logFile, true);
         fw.write(newPosts.toString());
         fw.close();
         
-        System.out.println("Log saved to: " + logFile);
+        System.out.println("\nDone! New: " + newCount + ", Checked: " + count);
+        System.out.println("Saved to: " + logFile);
     }
     
     private static String htmlUnescape(String input) {
