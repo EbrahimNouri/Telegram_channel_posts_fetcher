@@ -628,3 +628,111 @@ Run time: 2026-05-01 15:22:26
 
 No new posts. Checked: 20 posts
 
+
+========================================
+Channel: @Thehackernews
+Run time: 2026-05-01 15:24:13
+========================================
+
+Post #1:
+🚨 WARNING: cPanel patched an auth flaw affecting all supported versions—forcing providers to restrict access.  Namecheap blocked ports 2083/2087, disabling control panel access until patches deployed.  🔗 Read → https://thehackernews.com/2026/04/critical-cpanel-authentication.html
+Link: https://t.mehttps://t.me/thehackernews/8897
+----------------------------------------
+
+Post #2:
+Security teams close hundreds of vulnerabilities and still can’t prove they’re safer.  Only ~2% of exposures matter when mapped to real attack paths and critical assets. The rest is noise from tools that miss context and exploitability.  🔗 Why most platforms miss real risk → https://thehackernews.com/2026/04/what-to-look-for-in-exposure-management.html
+Link: https://t.mehttps://t.me/thehackernews/8898
+----------------------------------------
+
+Post #3:
+BeyondTrust’s latest Microsoft Vulnerabilities Report is out, and the numbers should concern every security leader.  Critical vulnerabilities doubled, Azure & Dynamics surged 9x, and 40% of all flaws were tied to Elevation of Privilege.  More insights: https://thn.news/msft-vuln-report  #MVR2026 #LeastPrivilege
+Link: https://t.mehttps://t.me/thehackernews/8899
+----------------------------------------
+
+Post #4:
+🛑 A wave of attacks is using layered npm dependencies to deliver hidden malware.  Fake SDKs, AI-assisted commits, and job scams all route through packages that pull second-stage payloads, stealing crypto wallets, credentials, and source code. Linked to North Korean campaigns targeting developers.  🔗 Learn how these attacks connect across npm, PyPI, and GitHub → https://thehackernews.com/2026/04/new-wave-of-dprk-attacks-uses-ai.html
+Link: https://t.mehttps://t.me/thehackernews/8900
+----------------------------------------
+
+Post #5:
+⚠️ ALERT — SAP related npm packages were just found shipping credential-stealing malware.  A preinstall script runs on install, steals tokens, and injects GitHub Actions to self-propagate, exfiltrating encrypted secrets via victim-owned repos.  🔗 Read → https://thehackernews.com/2026/04/sap-npm-packages-compromised-by-mini.html
+Link: https://t.mehttps://t.me/thehackernews/8901
+----------------------------------------
+
+Post #6:
+🛑 Gemini and Cursor vulnerabilities exposed direct code execution in dev workflows.  #Gemini CLI (CVSS 10.0) auto-trusted folders in CI, letting malicious .gemini/ configs from PRs run on hosts. #Cursor bugs triggered hidden Git hooks and exposed local API keys via extensions.  🔗 Details → https://thehackernews.com/2026/04/google-fixes-cvss-10-gemini-cli-ci-rce.html
+Link: https://t.mehttps://t.me/thehackernews/8902
+----------------------------------------
+
+Post #7:
+⚠️ UPDATE: #cPanel flaw now tracked as CVE-2026-41940 (CVSS 9.8)—an auth bypass granting unauthenticated admin access.  Actively exploited as a 0-day for weeks. Root cause: CRLF injection lets attackers forge sessions and escalate to root.  🔗 Exploit mechanics and real-world impact → https://thehackernews.com/2026/04/critical-cpanel-authentication.html
+Link: https://t.mehttps://t.me/thehackernews/8903
+----------------------------------------
+
+Post #8:
+⚠️ A new #Linux flaw mirrors Dirty Pipe—but adds cross-container impact.  “Copy Fail” (CVE-2026-31431) lets any local user overwrite cached system files and run them as root. No race condition.  Works across major Linux distros since 2017.  🔗 Read → https://thehackernews.com/2026/04/new-linux-copy-fail-vulnerability.html
+Link: https://t.mehttps://t.me/thehackernews/8904
+----------------------------------------
+
+Post #9:
+🚨 Attackers are targeting enterprise admins with fake tools and running control through #Ethereum smart contracts.  Malware spreads via SEO-poisoned #GitHub repos, then pulls live C2 from blockchain. No domains to block. Access lands on high-privilege systems.  🔗 Learn how this campaign turns search results into enterprise breaches → https://thehackernews.com/2026/04/etherrat-distribution-spoofing.html
+Link: https://t.mehttps://t.me/thehackernews/8905
+----------------------------------------
+
+Post #10:
+⚠️ Malware now ships its payload inside the installer.  DEEP#DOOR embeds a Python backdoor in a script, extracts it at runtime, and avoids external downloads.  Using tunneling, it keeps access and steals credentials with minimal trace.  🔗 Read → https://thehackernews.com/2026/04/new-python-backdoor-uses-tunneling.html
+Link: https://t.mehttps://t.me/thehackernews/8906
+----------------------------------------
+
+Post #11:
+AI-enabled cyber attacks are on the rise. Are you prepared? Most orgs aren’t as prepared as they think for AI-enabled attacks, but it’s never too late to start.  The cyber risk playbook for the AI threat era draws on research from over 200 GRC, IT, and cybersecurity professionals to gain new insights into AI-enabled attacks and the need for proactive cyber resilience.  Get the playbook today → https://thn.news/nyc-cyber-training
+Link: https://t.mehttps://t.me/thehackernews/8907
+----------------------------------------
+
+Post #12:
+🔥 Cyber chaos exploding this week...  • Fake cell towers • npm .env theft • Extensions sell data • 3.4M servers exposed • Vidar tops stealers • 38 OpenEMR flaws • Komari backdoor used • Saiga 2FA kits • Black Axe arrests • PhantomRPC unpatched • Robinhood phishing trick • arXiv leaks keys • Qinglong crypto mining • PyPI supply attack  🛡️ Full list here → https://thehackernews.com/2026/04/threatsday-bulletin-sms-blaster-busts.html
+Link: https://t.mehttps://t.me/thehackernews/8908
+----------------------------------------
+
+Post #13:
+🚨 Supply chain attacks are escalating...  A widely used AI dev tool, PyTorch Lightning, was compromised on PyPI and turned into a credential stealer.  → Malicious code runs on import → No user action needed → Credentials silently stolen  Read: https://thehackernews.com/2026/04/pytorch-lightning-compromised-in-pypi.html
+Link: https://t.mehttps://t.me/thehackernews/8909
+----------------------------------------
+
+Post #14:
+🤦‍♂️ Another supply chain hit.  intercom-client npm package compromised → Malicious preinstall hook executes on install → Credentials targeted across dev & CI/CD  Linked to ongoing Mini Shai-Hulud campaign.  Read this update here: https://thehackernews.com/2026/04/pytorch-lightning-compromised-in-pypi.html#intercom-npm-package-compromised-as-part-of-mini-shai-hulud
+Link: https://t.mehttps://t.me/thehackernews/8910
+----------------------------------------
+
+Post #15:
+⚠️ Update: Mini Shai-Hulud is spreading across ecosystems.  → intercom-client (npm) and intercom-php (Packagist) compromised → Install-time hooks deploy credential stealer  Attack targets GitHub tokens, cloud creds, SSH keys, Kubernetes, Vault, Docker, and .env files.  Read: https://thehackernews.com/2026/04/pytorch-lightning-compromised-in-pypi.html#intercom-npm-and-packagist-package-compromised-as-part-of-mini-shai-hulud  Campaign linked to TeamPCP and earlier Lightning compromise.
+Link: https://t.mehttps://t.me/thehackernews/8911
+----------------------------------------
+
+Post #16:
+😬 Poisoned Ruby gems + Go modules used in a supply chain attack.  • Steal AWS creds, SSH keys, configs • Tamper GitHub Actions via fake binaries • Add SSH access for persistence  Read → https://thehackernews.com/2026/05/poisoned-ruby-gems-and-go-modules.html
+Link: https://t.mehttps://t.me/thehackernews/8912
+----------------------------------------
+
+Post #17:
+🛑 Two cybersecurity professionals were sentenced to four years each for helping deploy BlackCat ransomware across the U.S. in 2023.  They took a share of ransom payments, including about 1.2 million in Bitcoin from one victim.  Read → https://thehackernews.com/2026/05/two-cybersecurity-professionals-get-4.html
+Link: https://t.mehttps://t.me/thehackernews/8913
+----------------------------------------
+
+Post #18:
+Cybersecurity market: 38 B → 69 B by 2030  Yet MSPs still lose deals: • 77% can’t create urgency • 66% face cost pushback • 8+ decision-makers per deal  Fix: sell outcomes, not tech  Read more → https://thehackernews.com/2026/05/top-five-sales-challenges-costing-msps.html
+Link: https://t.mehttps://t.me/thehackernews/8914
+----------------------------------------
+
+Post #19:
+⚠️ China-linked hackers targeted governments across Asia + a NATO state (Poland), exploiting Exchange/IIS flaws to deploy ShadowPad.  At the same time: journalists & activists hit with phishing campaigns.  Two ops. Same priorities.  Details here → https://thehackernews.com/2026/05/china-linked-hackers-target-asian.html
+Link: https://t.mehttps://t.me/thehackernews/8915
+----------------------------------------
+
+Post #20:
+⚠️ Two cybercrime groups are executing rapid SaaS attacks with minimal trace.  Cordial Spider and Snarky Spider use vishing and AiTM phishing to steal credentials, bypass MFA, and access multiple platforms through SSO.  Read: https://thehackernews.com/2026/05/cybercrime-groups-using-vishing-and-sso.html
+Link: https://t.mehttps://t.me/thehackernews/8916
+----------------------------------------
+
+New: 20 / Checked: 20
+

@@ -40,58 +40,59 @@ Automatic Telegram channel posts logger using GitHub Actions.
 
 
 
+
 ## Latest Channel Posts
 
 ```
+Link: https://t.mehttps://t.me/thehackernews/8907
+----------------------------------------
+
+Post #12:
+🔥 Cyber chaos exploding this week...  • Fake cell towers • npm .env theft • Extensions sell data • 3.4M servers exposed • Vidar tops stealers • 38 OpenEMR flaws • Komari backdoor used • Saiga 2FA kits • Black Axe arrests • PhantomRPC unpatched • Robinhood phishing trick • arXiv leaks keys • Qinglong crypto mining • PyPI supply attack  🛡️ Full list here → https://thehackernews.com/2026/04/threatsday-bulletin-sms-blaster-busts.html
+Link: https://t.mehttps://t.me/thehackernews/8908
+----------------------------------------
+
 Post #13:
-💢سایه جنگ ایران بر راهپیمایی روز کارگر؛ از درگیری با پلیس در فیلیپین تا بازداشت‌ معترضان در ترکیه  همزمان با روز جهانی کارگر و مطابق معمول هر ساله گروه‌هایی از مردم و کنشگران صنفی و کارگری در کشورهای مختلف به خیابان آمدند و تجمع و راهپیمایی بر پا کردند؛ رویدادی که در بعضی کشورها تا نیمروز جمعه درگیری با پلیس، بازداشت و حواشی دیگر را به همراه داشت. از بامداد روز جمعه یکم مه (۱۱ اردیبهشت) راهپمایی روز کارگر در کشورهای آسیایی از جمله تایوان، کره جنوبی و پاکستان برگزار شد.  شماری از شهروندان و کنشگران کارگری و اجتماعی و نیز هواداران گروه‌های چپگرا در عراق نیز به خیابان آمدند و شعار سر دادند.  در جریان راهپیمایی روز جهانی کارگر در مانیل، پایتخت فیلیپین، راهپیمایان در نزدیکی سفارت آمریکا با پلیس درگیر شدند؛ اعتراضاتی که تحت تأثیر مستقیم پیامدهای اقتصادی جنگ ایران شکل گرفت.  بیشتر بخوانید: https://l.euronews.com/37ig
-Link: https://t.mehttps://t.me/euronewspe/85581
+🚨 Supply chain attacks are escalating...  A widely used AI dev tool, PyTorch Lightning, was compromised on PyPI and turned into a credential stealer.  → Malicious code runs on import → No user action needed → Credentials silently stolen  Read: https://thehackernews.com/2026/04/pytorch-lightning-compromised-in-pypi.html
+Link: https://t.mehttps://t.me/thehackernews/8909
 ----------------------------------------
 
 Post #14:
-🎥آیا سفیر اوکراین در آمریکا هنگام تیراندازی مهمانی کاخ سفید بطری‌های شامپاین دزدیده است؟  گزارش راستی‌آزمایی یورونیوز را بخوانید: https://l.euronews.com/saGX
-Link: https://t.mehttps://t.me/euronewspe/85582
+🤦‍♂️ Another supply chain hit.  intercom-client npm package compromised → Malicious preinstall hook executes on install → Credentials targeted across dev & CI/CD  Linked to ongoing Mini Shai-Hulud campaign.  Read this update here: https://thehackernews.com/2026/04/pytorch-lightning-compromised-in-pypi.html#intercom-npm-package-compromised-as-part-of-mini-shai-hulud
+Link: https://t.mehttps://t.me/thehackernews/8910
 ----------------------------------------
 
 Post #15:
-🎥تنش بر سر تفسیر مهلت ۶۰ روزه جنگ در آمریکا؛ افزایش فشار اقتصادی، تهدید خارجی و سرکوب داخلی در ایران   بیشتر بخوانید: https://l.euronews.com/PxKQ
-Link: https://t.mehttps://t.me/euronewspe/85583
+⚠️ Update: Mini Shai-Hulud is spreading across ecosystems.  → intercom-client (npm) and intercom-php (Packagist) compromised → Install-time hooks deploy credential stealer  Attack targets GitHub tokens, cloud creds, SSH keys, Kubernetes, Vault, Docker, and .env files.  Read: https://thehackernews.com/2026/04/pytorch-lightning-compromised-in-pypi.html#intercom-npm-and-packagist-package-compromised-as-part-of-mini-shai-hulud  Campaign linked to TeamPCP and earlier Lightning compromise.
+Link: https://t.mehttps://t.me/thehackernews/8911
 ----------------------------------------
 
 Post #16:
-💢«سوءاستفاده» ایران از آتش‌بس برای خارج کردن تسلیحات پنهان زیرزمینی؛ واکنش ترامپ چه خواهد بود؟  به ادعای مقام‌های آمریکایی، ایران با سوءاستفاده از آتش‌بس موقت، در حال بازیابی موشک‌ها و پهپادهای مدفون زیر زمین است تا توان تهاجمی خود را پیش از تصمیم احتمالی ترامپ برای ازسرگیری حملات بازسازی کند. گزارش‌های اطلاعاتی نشان می‌دهد تهران باوجود خسارات گسترده، «بخشی» از زرادخانه خود را حفظ کرده‌ است.  این گزارش را بخوانید: https://l.euronews.com/Irsc
-Link: https://t.mehttps://t.me/euronewspe/85584
+😬 Poisoned Ruby gems + Go modules used in a supply chain attack.  • Steal AWS creds, SSH keys, configs • Tamper GitHub Actions via fake binaries • Add SSH access for persistence  Read → https://thehackernews.com/2026/05/poisoned-ruby-gems-and-go-modules.html
+Link: https://t.mehttps://t.me/thehackernews/8912
 ----------------------------------------
 
 Post #17:
-💢هزار کیلومتر در ۱۰ دقیقه؛ «عقاب سیاه» برای شکار لانچرهای ایران به منطقه می‌آید  در حالی که تنش‌ها میان واشنگتن و تهران به مراحل حساسی رسیده است، گزارش‌های جدید از آماده‌سازی ارتش آمریکا برای اعزام یک سلاح مخفی و استراتژیک به منطقه خبر می‌دهند. بنابر گزارش پایگاه بلومبرگ ستاد فرماندهی مرکزی ایالات متحده (سنتکام) درخواست کرده است تا موشک‌های هایپرسونیک نیروی زمینی ارتش، موسوم به «عقاب سیاه» (Dark Eagle)، را برای استفاده احتمالی علیه اهدافی در عمق خاک ایران به خاورمیانه اعزام کند.  این درخواست در حالی مطرح شده است که با وجود برقراری آتش‌بس موقت از ۹ آوریل ۲۰۲۶، هر دو طرف از این زمان برای بازسازی توان نظامی و برنامه‌ریزی برای دورهای بعدی درگیری استفاده کرده‌اند؛ نبردهایی که تحلیلگران معتقدند ممکن است بسیار مرگبارتر از قبل باشند.  بیشتر بخوانید: https://l.euronews.com/zw4t
-Link: https://t.mehttps://t.me/euronewspe/85585
+🛑 Two cybersecurity professionals were sentenced to four years each for helping deploy BlackCat ransomware across the U.S. in 2023.  They took a share of ransom payments, including about 1.2 million in Bitcoin from one victim.  Read → https://thehackernews.com/2026/05/two-cybersecurity-professionals-get-4.html
+Link: https://t.mehttps://t.me/thehackernews/8913
 ----------------------------------------
 
 Post #18:
-💢یک مرد ژاپنی جسد زنش را در باغ وحش سوزاند؛ پلیس از بازداشت او خبر داد  پلیس ژاپن مردی را بازداشت کرده که مظنون است جسد همسر فوت‌شده‌اش را در همان باغ‌وحشی که در آن کار می‌کرده سوزانده است.  این خبر را روز جمعه مقام‌ها و رسانه‌های محلی پس از کشف بقایای انسانی اعلام کردند.  این کارمند باغ‌وحش آساهیا‌ما که «تاتسویا سوزوکی» نام دارد مظنون است که جسد زنش را در کوره مخصوص سوزاندن لاشه حیوانات سوزانده است.  یک مقام پلیس محلی روز پنجشنبه به خبرگزاری فرانسه گفت تاتسویا سوزوکی متهم است که «جسد را به یک محل گردشگری در جزیره هوکایدو (شمال کشور) منتقل کرده» و «آن را در همان محل با سوزاندن از بین برده است.»  بیشتر بخوانید: https://l.euronews.com/FP0E
-Link: https://t.mehttps://t.me/euronewspe/85586
+Cybersecurity market: 38 B → 69 B by 2030  Yet MSPs still lose deals: • 77% can’t create urgency • 66% face cost pushback • 8+ decision-makers per deal  Fix: sell outcomes, not tech  Read more → https://thehackernews.com/2026/05/top-five-sales-challenges-costing-msps.html
+Link: https://t.mehttps://t.me/thehackernews/8914
 ----------------------------------------
 
 Post #19:
-💢بحران کود ناشی از جنگ ایران بر نگرانی‌ها درباره امنیت غذایی جهان افزوده است جنگ ایران و انسداد تنگه هرمز باعث شده با جهش هزینه انرژی و اختلال صادرات، کشاورزان با «فشار کود» و پایین ترین توان خرید در چهار سال اخیر روبرو شوند. جنگ ایران امنیت غذایی بین‌المللی را تهدید می‌کند، زیرا هزینه‌های تولید جهش کرده و مسیرهای حیاتی صادرات قطع شده است. به‌ویژه فشار بر عرضه کود باعث شده توان مالی کشاورزان به پایین‌ترین سطح در چهار سال گذشته برسد.  بانک جهانی در گزارش تازه‌ای هشدار داده که این جهش هزینه‌ها عمدتا ناشی از افزایش بهای گاز طبیعی است.  به گفته منابع آگاه، وزیران کشاورزی اروپا اکنون خواستار مداخله فوری شده‌اند تا از تداوم بحران قیمت مواد غذایی جلوگیری کنند و برداشت غلات برای فصل سال آینده را حفظ کنند.  بیشتر بخوانید: https://l.euronews.com/mKDk
-Link: https://t.mehttps://t.me/euronewspe/85587
+⚠️ China-linked hackers targeted governments across Asia + a NATO state (Poland), exploiting Exchange/IIS flaws to deploy ShadowPad.  At the same time: journalists & activists hit with phishing campaigns.  Two ops. Same priorities.  Details here → https://thehackernews.com/2026/05/china-linked-hackers-target-asian.html
+Link: https://t.mehttps://t.me/thehackernews/8915
 ----------------------------------------
 
 Post #20:
-💢جنگ ایران مسیرهای دریایی را باز ترسیم کرد؛ آفریقا به نقطه ثقل تبدیل شد به گزارش خبرگزاری فرانسه انسداد تنگه هرمز در کنار تنش‌ها در دریای سرخ، در حال بازتعریف مسیرهای تجاری است؛ به طوری که طبق گفته منابع لجستیکی و دریایی، آفریقا به قطب تردد کشتی‌های کانتینری جهان تبدیل شده است. طی دو ماه گذشته، این محاصره مالکان کشتی را وادار کرده است تا برای تحویل مواد غذایی و کالاهای صنعتی از طریق کامیون، دالان‌های زمینی جایگزین پیدا کنند، چرا که دیگر نمی‌توانند از طریق دریا به کشورهای ساحلی خلیج فارس دسترسی داشته باشند.  مسیرهای جایگزین برای ارسال کالا به کشورهای خلیج فارس چیست؟  بیشتر بخوانید: https://l.euronews.com/L87d
-Link: https://t.mehttps://t.me/euronewspe/85588
+⚠️ Two cybercrime groups are executing rapid SaaS attacks with minimal trace.  Cordial Spider and Snarky Spider use vishing and AiTM phishing to steal credentials, bypass MFA, and access multiple platforms through SSO.  Read: https://thehackernews.com/2026/05/cybercrime-groups-using-vishing-and-sso.html
+Link: https://t.mehttps://t.me/thehackernews/8916
 ----------------------------------------
 
 New: 20 / Checked: 20
-
-
-========================================
-Channel: @euronewspe
-Run time: 2026-05-01 15:22:26
-========================================
-
-No new posts. Checked: 20 posts
 ```
 
-*Last updated: 2026-05-01 15:22:27 UTC*
+*Last updated: 2026-05-01 15:24:14 UTC*
