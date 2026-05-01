@@ -1,4 +1,4 @@
-name: Telegram Posts + Media Logger
+name: Telegram Posts HTML Logger
 
 on:
   schedule:
@@ -47,40 +47,30 @@ jobs:
     
     - name: Update README
       run: |
-        LAST_POSTS=$(tail -50 posts_log.txt)
-        cat > readme_posts_section.md << EOF
+        echo "🌐 [View Posts Page](posts.html)" > readme_section.md
+        echo "" >> readme_section.md
+        echo "*Last updated: $(date +'%Y-%m-%d %H:%M:%S') UTC*" >> readme_section.md
         
-        ## Latest Channel Posts
-        
-        \`\`\`
-        $(echo "$LAST_POSTS")
-        \`\`\`
-        
-        *Last updated: $(date +'%Y-%m-%d %H:%M:%S') UTC*
-        EOF
-        
-        if grep -q "## Latest Channel Posts" README.md; then
-          sed -i '/## Latest Channel Posts/,$d' README.md
+        if grep -q "🌐" README.md; then
+          sed -i '/🌐/,$d' README.md
         fi
-        cat readme_posts_section.md >> README.md
+        cat readme_section.md >> README.md
     
     - name: Commit and Push
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        git add posts_log.txt README.md media/
+        git add posts.html README.md media/
         if git diff --staged --quiet; then
           echo "No changes"
         else
-          git commit -m "Update posts and media - $(date +'%Y-%m-%d %H:%M:%S')"
+          git commit -m "Update posts HTML - $(date +'%Y-%m-%d %H:%M:%S')"
           git push
         fi
     
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: posts-and-media
-        path: |
-          posts_log.txt
-          media/
+        name: posts-html
+        path: posts.html
         retention-days: 7
