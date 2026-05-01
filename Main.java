@@ -9,11 +9,10 @@ import java.nio.file.*;
 import java.util.*;
 
 public class Main {
-    private static final String MEDIA_DIR = "media";
     private static final long MAX_DOWNLOAD_SIZE = 10 * 1024 * 1024; // 10MB
     
     public static void main(String[] args) throws Exception {
-        System.out.println("Starting Telegram channel reader - HTML output...");
+        System.out.println("Starting Telegram channel reader - Multi channel...");
         
         String channelUsername = System.getenv("CHANNEL_USERNAME");
         String postCountStr = System.getenv("POST_COUNT");
@@ -31,13 +30,26 @@ public class Main {
             }
         }
         
-        new File(MEDIA_DIR).mkdirs();
+        // ============ ساختار پوشه ============
+        // channels/
+        //   ├── proxymtproto/
+        //   │   ├── posts.html
+        //   │   └── media/
+        //   │       ├── photo_1.jpg
+        //   │       └── video_2.mp4
+        //   └── mitivpn/
+        //       ├── posts.html
+        //       └── media/
+        
+        String channelDir = "channels/" + channelUsername;
+        String mediaDir = channelDir + "/media";
+        String htmlFile = channelDir + "/posts.html";
+        
+        new File(mediaDir).mkdirs();
         
         System.out.println("Channel: @" + channelUsername);
         System.out.println("Max posts: " + maxPosts);
-        
-        // Change output to HTML
-        String htmlFile = "posts.html";
+        System.out.println("Output: " + htmlFile);
         
         // Read existing HTML for duplicate detection
         String existingContent = "";
@@ -72,55 +84,81 @@ public class Main {
         
         Matcher blockMatcher = postBlockPattern.matcher(html);
         
-        // Start HTML document
+        // Build HTML
         StringBuilder htmlOutput = new StringBuilder();
         htmlOutput.append("<!DOCTYPE html>\n<html dir=\"rtl\">\n<head>\n");
         htmlOutput.append("<meta charset=\"UTF-8\">\n");
         htmlOutput.append("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n");
-        htmlOutput.append("<title>@").append(channelUsername).append(" - Posts</title>\n");
+        htmlOutput.append("<title>@").append(channelUsername).append("</title>\n");
         htmlOutput.append("<style>\n");
-        htmlOutput.append("body { font-family: Tahoma, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #f5f5f5; }\n");
-        htmlOutput.append(".post { background: white; border-radius: 10px; padding: 15px; margin: 15px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }\n");
-        htmlOutput.append(".post img, .post video { max-width: 100%; border-radius: 8px; margin: 10px 0; }\n");
-        htmlOutput.append(".post .text { line-height: 1.8; margin: 10px 0; }\n");
-        htmlOutput.append(".post .link { color: #888; font-size: 12px; margin-top: 10px; }\n");
-        htmlOutput.append(".post .link a { color: #5699d0; text-decoration: none; }\n");
-        htmlOutput.append(".header { text-align: center; padding: 20px; background: #5699d0; color: white; border-radius: 10px; margin-bottom: 20px; }\n");
-        htmlOutput.append("</style>\n</head>\n<body>\n");
+        htmlOutput.append("* { margin: 0; padding: 0; box-sizing: border-box; }\n");
+        htmlOutput.append("body { font-family: Tahoma, sans-serif; max-width: 600px; margin: 0 auto; padding: 10px; background: #f0f2f5; }\n");
+        htmlOutput.append(".header { background: #3a9eea; color: white; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 15px; position: sticky; top: 10px; z-index: 100; }\n");
+        htmlOutput.append(".header h2 { font-size: 18px; margin-bottom: 5px; }\n");
+        htmlOutput.append(".header p { font-size: 11px; opacity: 0.8; }\n");
+        htmlOutput.append(".post { background: white; border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }\n");
+        htmlOutput.append(".post .text { line-height: 1.9; font-size: 14px; color: #222; margin-bottom: 10px; word-wrap: break-word; }\n");
+        htmlOutput.append(".post img { max-width: 100%; border-radius: 8px; display: block; margin: 8px 0; }\n");
+        htmlOutput.append(".post video { max-width: 100%; border-radius: 8px; display: block; margin: 8px 0; }\n");
+        htmlOutput.append(".post .file-link { display: inline-block; background: #e8f0fe; color: #1a73e8; padding: 8px 15px; border-radius: 20px; text-decoration: none; font-size: 13px; margin: 5px 0; }\n");
+        htmlOutput.append(".post .file-link:hover { background: #d2e3fc; }\n");
+        htmlOutput.append(".post .meta { font-size: 11px; color: #888; margin-top: 8px; border-top: 1px solid #eee; padding-top: 8px; }\n");
+        htmlOutput.append(".post .meta a { color: #3a9eea; text-decoration: none; }\n");
+        htmlOutput.append(".stats { text-align: center; padding: 15px; color: #666; font-size: 12px; }\n");
+        htmlOutput.append(".nav { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 15px; }\n");
+        htmlOutput.append(".nav a { background: white; padding: 6px 12px; border-radius: 15px; text-decoration: none; color: #3a9eea; font-size: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }\n");
+        htmlOutput.append(".nav a:hover { background: #e8f0fe; }\n");
+        htmlOutput.append("</style>\n</head>\n<body>\n\n");
         
+        // Header
         htmlOutput.append("<div class=\"header\">\n");
         htmlOutput.append("<h2>@").append(channelUsername).append("</h2>\n");
-        htmlOutput.append("<p>Updated: ").append(LocalDateTime.now().format(
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+        htmlOutput.append("<p>").append(LocalDateTime.now().format(
+            DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")
         )).append("</p>\n");
+        htmlOutput.append("</div>\n\n");
+        
+        // Navigation links to other channels (if any)
+        htmlOutput.append("<div class=\"nav\">\n");
+        File channelsRoot = new File("channels");
+        if (channelsRoot.exists()) {
+            File[] otherChannels = channelsRoot.listFiles(File::isDirectory);
+            if (otherChannels != null) {
+                for (File ch : otherChannels) {
+                    if (ch.getName().equals(channelUsername)) continue;
+                    htmlOutput.append("<a href=\"../").append(ch.getName()).append("/posts.html\">@")
+                        .append(ch.getName()).append("</a>\n");
+                }
+            }
+        }
         htmlOutput.append("</div>\n\n");
         
         int count = 0;
         int newCount = 0;
-        int mediaCount = 0;
+        int photoCount = 0;
+        int videoCount = 0;
+        int fileCount = 0;
         
         while (blockMatcher.find() && count < maxPosts) {
             count++;
             String block = blockMatcher.group(1);
             
-            // Extract post link
             String postLink = extractPostLink(block);
             
-            // Skip if already processed
-            if (existingContent.contains(postLink)) {
+            // Skip duplicates
+            if (postLink != null && existingContent.contains(postLink)) {
                 continue;
             }
             
             newCount++;
             
-            // Extract content
             String text = extractText(block);
             String photoUrl = extractPhotoUrl(block);
             String videoUrl = extractVideoUrl(block);
             String documentUrl = extractDocumentUrl(block);
             String documentName = extractDocumentName(block);
             
-            // Build HTML post
+            // Start post div
             htmlOutput.append("<div class=\"post\">\n");
             
             // Text
@@ -128,51 +166,68 @@ public class Main {
                 htmlOutput.append("<div class=\"text\">").append(escapeHtml(text)).append("</div>\n");
             }
             
-            // Photo inline
+            // Photo
             if (photoUrl != null) {
-                String savedName = downloadMedia(client, photoUrl, "photo_" + count);
-                if (savedName != null) {
-                    htmlOutput.append("<img src=\"media/").append(savedName).append("\" alt=\"Photo\">\n");
-                    mediaCount++;
+                String saved = downloadMedia(client, photoUrl, mediaDir, "photo_" + count);
+                if (saved != null) {
+                    htmlOutput.append("<img src=\"media/").append(saved).append("\" alt=\"Photo\" loading=\"lazy\">\n");
+                    photoCount++;
                 } else {
-                    htmlOutput.append("<img src=\"").append(photoUrl).append("\" alt=\"Photo\">\n");
+                    htmlOutput.append("<img src=\"").append(photoUrl).append("\" alt=\"Photo\" loading=\"lazy\">\n");
                 }
             }
             
-            // Video inline
+            // Video
             if (videoUrl != null) {
-                String savedName = downloadMedia(client, videoUrl, "video_" + count);
-                if (savedName != null) {
-                    htmlOutput.append("<video controls><source src=\"media/").append(savedName).append("\"></video>\n");
-                    mediaCount++;
+                String saved = downloadMedia(client, videoUrl, mediaDir, "video_" + count);
+                if (saved != null) {
+                    htmlOutput.append("<video controls preload=\"metadata\"><source src=\"media/").append(saved).append("\"></video>\n");
+                    videoCount++;
                 } else {
-                    htmlOutput.append("<video controls><source src=\"").append(videoUrl).append("\"></video>\n");
+                    htmlOutput.append("<video controls preload=\"metadata\"><source src=\"").append(videoUrl).append("\"></video>\n");
                 }
             }
             
-            // Document
+            // Document/File
             if (documentUrl != null) {
-                String savedName = downloadMedia(client, documentUrl, "doc_" + count);
-                if (savedName != null) {
-                    htmlOutput.append("<p>File: <a href=\"media/").append(savedName).append("\">");
-                    htmlOutput.append(documentName != null ? escapeHtml(documentName) : "Download");
-                    htmlOutput.append("</a></p>\n");
-                    mediaCount++;
+                String saved = downloadMedia(client, documentUrl, mediaDir, "file_" + count);
+                String displayName = documentName != null ? escapeHtml(documentName) : "Download File";
+                if (saved != null) {
+                    htmlOutput.append("<a class=\"file-link\" href=\"media/").append(saved).append("\" download>")
+                        .append(displayName).append("</a>\n");
+                    fileCount++;
                 } else {
-                    htmlOutput.append("<p>File: <a href=\"").append(documentUrl).append("\">");
-                    htmlOutput.append(documentName != null ? escapeHtml(documentName) : "Download");
-                    htmlOutput.append("</a></p>\n");
+                    htmlOutput.append("<a class=\"file-link\" href=\"").append(documentUrl).append("\" target=\"_blank\">")
+                        .append(displayName).append("</a>\n");
                 }
             }
             
-            // Link to original post
-            htmlOutput.append("<div class=\"link\"><a href=\"").append(postLink).append("\" target=\"_blank\">View on Telegram</a></div>\n");
+            // Meta
+            htmlOutput.append("<div class=\"meta\">\n");
+            if (postLink != null) {
+                htmlOutput.append("<a href=\"").append(postLink).append("\" target=\"_blank\">View on Telegram</a>\n");
+            }
+            htmlOutput.append("</div>\n");
+            
             htmlOutput.append("</div>\n\n");
             
-            System.out.println("New post #" + count + (photoUrl != null ? " [photo]" : "") + (videoUrl != null ? " [video]" : ""));
+            System.out.println("Post #" + count + 
+                (photoUrl != null ? " [photo]" : "") + 
+                (videoUrl != null ? " [video]" : "") + 
+                (documentUrl != null ? " [file]" : ""));
         }
         
-        htmlOutput.append("<p style=\"text-align:center;color:#888\">Total posts: ").append(newCount).append(" | Media: ").append(mediaCount).append("</p>\n");
+        // Stats
+        htmlOutput.append("<div class=\"stats\">\n");
+        htmlOutput.append("Posts: ").append(newCount);
+        htmlOutput.append(" | Photos: ").append(photoCount);
+        htmlOutput.append(" | Videos: ").append(videoCount);
+        htmlOutput.append(" | Files: ").append(fileCount);
+        htmlOutput.append("<br>Updated: ").append(LocalDateTime.now().format(
+            DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")
+        )).append("\n");
+        htmlOutput.append("</div>\n\n");
+        
         htmlOutput.append("</body>\n</html>");
         
         // Save HTML
@@ -180,26 +235,25 @@ public class Main {
         fw.write(htmlOutput.toString());
         fw.close();
         
-        System.out.println("\nDone! Posts: " + newCount + ", Media: " + mediaCount);
-        System.out.println("HTML saved to: " + htmlFile);
+        // Summary
+        System.out.println("\n==========================================");
+        System.out.println("Channel: @" + channelUsername);
+        System.out.println("New posts: " + newCount);
+        System.out.println("Photos: " + photoCount);
+        System.out.println("Videos: " + videoCount);
+        System.out.println("Files: " + fileCount);
+        System.out.println("Output: " + htmlFile);
+        System.out.println("Media: " + mediaDir + "/ (" + new File(mediaDir).listFiles().length + " files)");
+        System.out.println("==========================================");
     }
     
-    private static String escapeHtml(String text) {
-        return text
-            .replace("&", "&amp;")
-            .replace("<", "&lt;")
-            .replace(">", "&gt;")
-            .replace("\"", "&quot;")
-            .replace("\n", "<br>");
-    }
+    // ==================== EXTRACT METHODS ====================
     
     private static String extractPostLink(String block) {
         Pattern p = Pattern.compile("<a class=\"tgme_widget_message_date\" href=\"([^\"]+)\">");
         Matcher m = p.matcher(block);
-        if (m.find()) {
-            return "https://t.me" + m.group(1);
-        }
-        return "#";
+        if (m.find()) return "https://t.me" + m.group(1);
+        return null;
     }
     
     private static String extractText(String block) {
@@ -223,18 +277,14 @@ public class Main {
             "tgme_widget_message_photo_wrap[^\"]*\"[^>]*style=\"[^\"]*background-image:url\\('([^']+)'\\)"
         );
         Matcher m = p.matcher(block);
-        if (m.find()) {
-            return m.group(1);
-        }
+        if (m.find()) return m.group(1);
         return null;
     }
     
     private static String extractVideoUrl(String block) {
         Pattern p = Pattern.compile("<video[^>]*src=\"([^\"]+)\"");
         Matcher m = p.matcher(block);
-        if (m.find()) {
-            return m.group(1);
-        }
+        if (m.find()) return m.group(1);
         return null;
     }
     
@@ -245,9 +295,7 @@ public class Main {
         Matcher m = p.matcher(block);
         if (m.find()) {
             String link = m.group(1);
-            if (!link.startsWith("http")) {
-                link = "https://t.me" + link;
-            }
+            if (!link.startsWith("http")) link = "https://t.me" + link;
             return link;
         }
         return null;
@@ -258,93 +306,84 @@ public class Main {
             "<span\\s+class=\"tgme_widget_message_document_title[^\"]*\"[^>]*>(.*?)</span>"
         );
         Matcher m = p.matcher(block);
-        if (m.find()) {
-            return m.group(1).trim();
-        }
+        if (m.find()) return m.group(1).trim();
         return null;
     }
     
-  private static String downloadMedia(HttpClient client, String mediaUrl, String prefix) {
-    try {
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(mediaUrl))
-            .header("User-Agent", "Mozilla/5.0")
-            .timeout(java.time.Duration.ofMinutes(2))
-            .GET()
-            .build();
-        
-        HttpResponse<InputStream> response = client.send(
-            request, HttpResponse.BodyHandlers.ofInputStream()
-        );
-        
-        if (response.statusCode() != 200) return null;
-        
-        // Check content length to skip huge files
-        String contentLength = response.headers().firstValue("Content-Length").orElse("0");
-        long size = Long.parseLong(contentLength);
-        if (size > MAX_DOWNLOAD_SIZE || size == 0) {
-            System.out.println("  Skipping (size: " + size + ")");
+    // ==================== DOWNLOAD METHOD ====================
+    
+    private static String downloadMedia(HttpClient client, String mediaUrl, String mediaDir, String prefix) {
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(mediaUrl))
+                .header("User-Agent", "Mozilla/5.0")
+                .timeout(java.time.Duration.ofMinutes(2))
+                .GET()
+                .build();
+            
+            HttpResponse<InputStream> response = client.send(
+                request, HttpResponse.BodyHandlers.ofInputStream()
+            );
+            
+            if (response.statusCode() != 200) return null;
+            
+            String contentLength = response.headers().firstValue("Content-Length").orElse("0");
+            long size = Long.parseLong(contentLength);
+            if (size > MAX_DOWNLOAD_SIZE || size == 0) return null;
+            
+            String contentType = response.headers().firstValue("Content-Type").orElse("");
+            String ext = getExtension(contentType, mediaUrl);
+            
+            String fileName = prefix + "_" + System.currentTimeMillis() + ext;
+            Path filePath = Paths.get(mediaDir, fileName);
+            
+            Files.copy(response.body(), filePath, StandardCopyOption.REPLACE_EXISTING);
+            
+            return fileName;
+        } catch (Exception e) {
             return null;
         }
-        
-        // Determine extension from Content-Type
-        String contentType = response.headers().firstValue("Content-Type").orElse("");
-        String ext = getExtension(contentType, mediaUrl);
-        
-        String fileName = prefix + "_" + System.currentTimeMillis() + ext;
-        Path filePath = Paths.get(MEDIA_DIR, fileName);
-        
-        Files.copy(response.body(), filePath, StandardCopyOption.REPLACE_EXISTING);
-        
-        long actualSize = Files.size(filePath);
-        System.out.println("  Downloaded: " + fileName + " (" + actualSize + " bytes)");
-        
-        return fileName;
-    } catch (Exception e) {
-        System.out.println("  Download failed: " + e.getMessage());
-        return null;
     }
-}
-
-// متد کمکی برای تشخیص پسوند
-private static String getExtension(String contentType, String url) {
-    // اول از URL پسوند رو استخراج کن
-    try {
-        String path = new URI(url).getPath();
-        String fileName = Paths.get(path).getFileName().toString();
-        // حذف query string
-        if (fileName.contains("?")) {
-            fileName = fileName.substring(0, fileName.indexOf("?"));
-        }
-        // اگه پسوند داره، استفاده کن
-        if (fileName.contains(".") && fileName.lastIndexOf(".") < fileName.length() - 1) {
-            String ext = fileName.substring(fileName.lastIndexOf("."));
-            // تمیز کردن پسوند
-            ext = ext.replaceAll("[^a-zA-Z0-9.]", "");
-            if (ext.length() > 1 && ext.length() < 10) {
-                return ext;
+    
+    private static String getExtension(String contentType, String url) {
+        // Try from URL first
+        try {
+            String path = new URI(url).getPath();
+            String fileName = Paths.get(path).getFileName().toString();
+            if (fileName.contains("?")) fileName = fileName.substring(0, fileName.indexOf("?"));
+            if (fileName.contains(".")) {
+                String ext = fileName.substring(fileName.lastIndexOf("."));
+                ext = ext.replaceAll("[^a-zA-Z0-9.]", "");
+                if (ext.length() > 1 && ext.length() < 10) return ext;
             }
-        }
-    } catch (Exception ignored) {}
+        } catch (Exception ignored) {}
+        
+        // Then from Content-Type
+        if (contentType.contains("jpeg") || contentType.contains("jpg")) return ".jpg";
+        if (contentType.contains("png")) return ".png";
+        if (contentType.contains("gif")) return ".gif";
+        if (contentType.contains("webp")) return ".webp";
+        if (contentType.contains("mp4") || contentType.contains("video")) return ".mp4";
+        if (contentType.contains("pdf")) return ".pdf";
+        if (contentType.contains("zip")) return ".zip";
+        if (contentType.contains("rar")) return ".rar";
+        if (contentType.contains("octet-stream")) return ".bin";
+        if (contentType.contains("text") || contentType.contains("plain")) return ".txt";
+        
+        return "";
+    }
     
-    // بعد از Content-Type تشخیص بده
-    if (contentType.contains("jpeg") || contentType.contains("jpg")) return ".jpg";
-    if (contentType.contains("png")) return ".png";
-    if (contentType.contains("gif")) return ".gif";
-    if (contentType.contains("webp")) return ".webp";
-    if (contentType.contains("mp4") || contentType.contains("video")) return ".mp4";
-    if (contentType.contains("pdf")) return ".pdf";
-    if (contentType.contains("zip")) return ".zip";
-    if (contentType.contains("rar")) return ".rar";
-    if (contentType.contains("text") || contentType.contains("plain")) return ".txt";
-    if (contentType.contains("octet-stream")) return ".bin";
-    if (contentType.contains("json")) return ".json";
-    if (contentType.contains("xml")) return ".xml";
+    // ==================== UTILITY METHODS ====================
     
-    // هیچی پیدا نشد - یه پسوند پیش‌فرض نذار، بذار بدون پسوند باشه
-    // تا کاربر بتونه هر جور خواست بازش کنه
-    return "";
-}
+    private static String escapeHtml(String text) {
+        if (text == null) return "";
+        return text
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace("\"", "&quot;")
+            .replace("\n", "<br>");
+    }
     
     private static String htmlUnescape(String input) {
         if (input == null) return "";
@@ -354,6 +393,8 @@ private static String getExtension(String contentType, String url) {
             .replace("&gt;", ">")
             .replace("&quot;", "\"")
             .replace("&#39;", "'")
-            .replace("&nbsp;", " ");
+            .replace("&nbsp;", " ")
+            .replaceAll("&#\\d+;", "")
+            .replaceAll("&[a-z]+;", "");
     }
 }
