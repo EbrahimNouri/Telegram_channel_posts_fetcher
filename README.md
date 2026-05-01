@@ -41,58 +41,59 @@ Automatic Telegram channel posts logger using GitHub Actions.
 
 
 
+
 ## Latest Channel Posts
 
 ```
-Link: https://t.mehttps://t.me/thehackernews/8907
+Link: https://t.mehttps://t.me/ProxyMTProto/47152
 ----------------------------------------
 
 Post #12:
-🔥 Cyber chaos exploding this week...  • Fake cell towers • npm .env theft • Extensions sell data • 3.4M servers exposed • Vidar tops stealers • 38 OpenEMR flaws • Komari backdoor used • Saiga 2FA kits • Black Axe arrests • PhantomRPC unpatched • Robinhood phishing trick • arXiv leaks keys • Qinglong crypto mining • PyPI supply attack  🛡️ Full list here → https://thehackernews.com/2026/04/threatsday-bulletin-sms-blaster-busts.html
-Link: https://t.mehttps://t.me/thehackernews/8908
+Server: 172.234.115.238 Port: 443 Secret: 3a3365be03d6bc13518d65e70a3146c2 @ProxyMTProto
+Link: https://t.mehttps://t.me/ProxyMTProto/47153
 ----------------------------------------
 
 Post #13:
-🚨 Supply chain attacks are escalating...  A widely used AI dev tool, PyTorch Lightning, was compromised on PyPI and turned into a credential stealer.  → Malicious code runs on import → No user action needed → Credentials silently stolen  Read: https://thehackernews.com/2026/04/pytorch-lightning-compromised-in-pypi.html
-Link: https://t.mehttps://t.me/thehackernews/8909
+Server: bin.mdnk.fun Port: 443 Secret: ee528a8923aaf3441d3a3652bd37e33a56706574726f766963682e7275 @ProxyMTProto
+Link: https://t.mehttps://t.me/ProxyMTProto/47154
 ----------------------------------------
 
 Post #14:
-🤦‍♂️ Another supply chain hit.  intercom-client npm package compromised → Malicious preinstall hook executes on install → Credentials targeted across dev & CI/CD  Linked to ongoing Mini Shai-Hulud campaign.  Read this update here: https://thehackernews.com/2026/04/pytorch-lightning-compromised-in-pypi.html#intercom-npm-package-compromised-as-part-of-mini-shai-hulud
-Link: https://t.mehttps://t.me/thehackernews/8910
+Server: 93.77.161.19 Port: 443 Secret: 36f56fd415017632c3d5af46ec77a518 @ProxyMTProto
+Link: https://t.mehttps://t.me/ProxyMTProto/47155
 ----------------------------------------
 
 Post #15:
-⚠️ Update: Mini Shai-Hulud is spreading across ecosystems.  → intercom-client (npm) and intercom-php (Packagist) compromised → Install-time hooks deploy credential stealer  Attack targets GitHub tokens, cloud creds, SSH keys, Kubernetes, Vault, Docker, and .env files.  Read: https://thehackernews.com/2026/04/pytorch-lightning-compromised-in-pypi.html#intercom-npm-and-packagist-package-compromised-as-part-of-mini-shai-hulud  Campaign linked to TeamPCP and earlier Lightning compromise.
-Link: https://t.mehttps://t.me/thehackernews/8911
+Server: 154.83.208.125 Port: 7443 Secret: ee38b9b0c4593e5f066d687ddcca5e636c6f7564666c6172652e636f6d @ProxyMTProto
+Link: https://t.mehttps://t.me/ProxyMTProto/47156
 ----------------------------------------
 
 Post #16:
-😬 Poisoned Ruby gems + Go modules used in a supply chain attack.  • Steal AWS creds, SSH keys, configs • Tamper GitHub Actions via fake binaries • Add SSH access for persistence  Read → https://thehackernews.com/2026/05/poisoned-ruby-gems-and-go-modules.html
-Link: https://t.mehttps://t.me/thehackernews/8912
+Server: mtp.webvirt.cloud Port: 443 Secret: ee938dd87467bc49301de2e9765cf20f4374656c2e776562766972742e636c6f7564 @ProxyMTProto
+Link: https://t.mehttps://t.me/ProxyMTProto/47157
 ----------------------------------------
 
 Post #17:
-🛑 Two cybersecurity professionals were sentenced to four years each for helping deploy BlackCat ransomware across the U.S. in 2023.  They took a share of ransom payments, including about 1.2 million in Bitcoin from one victim.  Read → https://thehackernews.com/2026/05/two-cybersecurity-professionals-get-4.html
-Link: https://t.mehttps://t.me/thehackernews/8913
+Server: concord.servervless.ru Port: 443 Secret: ee25cbb92cbe5ef91a21da4e802e60675f6164732e78352e7275 @ProxyMTProto
+Link: https://t.mehttps://t.me/ProxyMTProto/47158
 ----------------------------------------
 
 Post #18:
-Cybersecurity market: 38 B → 69 B by 2030  Yet MSPs still lose deals: • 77% can’t create urgency • 66% face cost pushback • 8+ decision-makers per deal  Fix: sell outcomes, not tech  Read more → https://thehackernews.com/2026/05/top-five-sales-challenges-costing-msps.html
-Link: https://t.mehttps://t.me/thehackernews/8914
+Server: concord.servervless.ru Port: 443 Secret: ee25cbb92cbe5ef91a21da4e802e60675f6164732e78352e7275 @ProxyMTProto
+Link: https://t.mehttps://t.me/ProxyMTProto/47159
 ----------------------------------------
 
 Post #19:
-⚠️ China-linked hackers targeted governments across Asia + a NATO state (Poland), exploiting Exchange/IIS flaws to deploy ShadowPad.  At the same time: journalists & activists hit with phishing campaigns.  Two ops. Same priorities.  Details here → https://thehackernews.com/2026/05/china-linked-hackers-target-asian.html
-Link: https://t.mehttps://t.me/thehackernews/8915
+Server: 5.231.56.165 Port: 443 Secret: 7c81481b8a23812706cbd96fb2c8b0b8 @ProxyMTProto
+Link: https://t.mehttps://t.me/ProxyMTProto/47160
 ----------------------------------------
 
 Post #20:
-⚠️ Two cybercrime groups are executing rapid SaaS attacks with minimal trace.  Cordial Spider and Snarky Spider use vishing and AiTM phishing to steal credentials, bypass MFA, and access multiple platforms through SSO.  Read: https://thehackernews.com/2026/05/cybercrime-groups-using-vishing-and-sso.html
-Link: https://t.mehttps://t.me/thehackernews/8916
+🤖 Got a working proxy? Share it 🚀 Есть рабочий прокси? Поделись 🚀  Start @SProxyRobot, send it in, we’ll test & post it for everyone. Запусти @SProxyRobot, отправь, проверим и выложим для всех.  🌟 Go Priority: no queue, pick your time, instant solo post. 🌟 Приоритет: без очереди, выбираешь время, мгновенный отдельный пост.
+Link: https://t.mehttps://t.me/ProxyMTProto/47161
 ----------------------------------------
 
 New: 20 / Checked: 20
 ```
 
-*Last updated: 2026-05-01 15:24:14 UTC*
+*Last updated: 2026-05-01 15:26:58 UTC*
