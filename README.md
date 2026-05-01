@@ -43,17 +43,10 @@ Automatic Telegram channel posts logger using GitHub Actions.
 
 
 
+
 ## Latest Channel Posts
 
 ```
-Link: https://t.mehttps://t.me/KiriMohems/46878
-----------------------------------------
-
-Post #12:
-🔴امروز 1 May، روز جهانی کارگره.  روزتون مبارک کارگرهای شریف مظلوم ایران❤️   #professor  @KiriMohems
-Link: https://t.mehttps://t.me/KiriMohems/46879
-----------------------------------------
-
 Post #13:
 🔴امروز 1 May، روز جهانی کارگره.  روزتون مبارک کارگرهای شریف مظلوم ایران❤️   #professor  @KiriMohems
 Link: https://t.mehttps://t.me/KiriMohems/46880
@@ -95,6 +88,14 @@ Link: https://t.mehttps://t.me/KiriMohems/46887
 ----------------------------------------
 
 New: 20 / Checked: 20
+
+
+========================================
+Channel: @proxymtproto
+Run time: 2026-05-01 15:29:42
+========================================
+
+No new posts. Checked: 20 posts
 ```
 
-*Last updated: 2026-05-01 15:28:12 UTC*
+*Last updated: 2026-05-01 15:29:43 UTC*
