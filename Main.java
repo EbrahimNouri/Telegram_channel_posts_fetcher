@@ -12,6 +12,7 @@ public class Main {
         System.out.println("Starting Telegram channel reader...");
         
         String channelUsername = "proxymtproto"; // without @
+        String channelUsername = "mitivpn"; // without @
         String logFile = "posts_log.txt";
         
         // Read existing log to detect duplicates
@@ -58,7 +59,7 @@ public class Main {
         int count = 0;
         int newCount = 0;
         
-        while (postMatcher.find() && linkMatcher.find() && count < 10) {
+        while (postMatcher.find() && linkMatcher.find() && count < 100) {
             count++;
             String post = postMatcher.group(1);
             String link = "https://t.me" + linkMatcher.group(1);
