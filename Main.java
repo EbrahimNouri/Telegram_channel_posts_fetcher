@@ -11,7 +11,7 @@ public class Main {
     public static void main(String[] args) throws Exception {
         System.out.println("Starting Telegram channel reader...");
         
-        String channelUsername = "your_channel"; // without @
+        String channelUsername = "proxymtproto"; // without @
         String logFile = "posts_log.txt";
         
         // Read existing log to detect duplicates
