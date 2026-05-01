@@ -29,17 +29,10 @@ Automatic Telegram channel posts logger using GitHub Actions.
 
 
 
+
 ## Latest Channel Posts
 
 ```
-
-Post #14:
-🛡 کانفیگ فول پرسرعت برای نت ملی نپستر مخصوص دانلود وب گردی نامحدود برای اندروید و آیفون  🔹نحوه اتصال داخل اندروید کلیک کن👉  🔹نحوه اتصال داخل آیفون کلیک کن👉  اینترنت آزاد برای همه, یا هیچکس 🖤  T.me/MiTiVPN 🥇
-Link: https://t.mehttps://t.me/mitivpn/16633
-----------------------------------------
-
-Post #15:
-ملی شکن 💥♥️.npvt
 Link: https://t.mehttps://t.me/mitivpn/16725
 ----------------------------------------
 
@@ -81,6 +74,14 @@ Link: https://t.mehttps://t.me/mitivpn/16773
 ----------------------------------------
 
 Total new posts: 1
+
+
+========================================
+Channel: @mitivpn
+Run time: 2026-05-01 15:01:10
+========================================
+
+No new posts found. (Checked 20 posts)
 ```
 
-*Last updated: 2026-05-01 15:00:04 UTC*
+*Last updated: 2026-05-01 15:01:11 UTC*
