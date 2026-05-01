@@ -1,4 +1,4 @@
-name: Telegram Channel Posts Logger
+name: Telegram Posts + Media Logger
 
 on:
   schedule:
@@ -45,10 +45,9 @@ jobs:
         POST_COUNT: ${{ github.event.inputs.count || '100' }}
       run: java -cp build Main
     
-    - name: Update README with latest posts
+    - name: Update README
       run: |
         LAST_POSTS=$(tail -50 posts_log.txt)
-        
         cat > readme_posts_section.md << EOF
         
         ## Latest Channel Posts
@@ -63,27 +62,25 @@ jobs:
         if grep -q "## Latest Channel Posts" README.md; then
           sed -i '/## Latest Channel Posts/,$d' README.md
         fi
-        
         cat readme_posts_section.md >> README.md
     
-    - name: Commit and Push if Changed
+    - name: Commit and Push
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        
-        git add posts_log.txt README.md
-        
+        git add posts_log.txt README.md media/
         if git diff --staged --quiet; then
-          echo "No changes to commit"
+          echo "No changes"
         else
-          git commit -m "Update posts log and README - $(date +'%Y-%m-%d %H:%M:%S')"
+          git commit -m "Update posts and media - $(date +'%Y-%m-%d %H:%M:%S')"
           git push
-          echo "Changes committed and pushed!"
         fi
     
-    - name: Upload Log as Artifact
+    - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: posts-log
-        path: posts_log.txt
-        retention-days: 90
+        name: posts-and-media
+        path: |
+          posts_log.txt
+          media/
+        retention-days: 7
