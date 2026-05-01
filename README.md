@@ -26,16 +26,10 @@ Automatic Telegram channel posts logger using GitHub Actions.
 
 
 
+
 ## Latest Channel Posts
 
 ```
-Link: https://t.mehttps://t.me/ProxyMTProto/47139
-----------------------------------------
-
-Post #2:
-Server: labuten.strawberries.cfd Port: 853 Secret: ee58639c2a0869a8d109d1b6dde1aa98c677622e7275 @ProxyMTProto
-Link: https://t.mehttps://t.me/ProxyMTProto/47140
-----------------------------------------
 
 Post #3:
 Server: 92.118.206.53 Port: 443 Secret: ee328dd6a9f470d1672bf6435d2b6c5e5e706574726f766963682e7275 @ProxyMTProto
@@ -78,6 +72,13 @@ Link: https://t.mehttps://t.me/ProxyMTProto/47148
 ----------------------------------------
 
 Total new posts: 10
+
+
+========================================
+Run time: 2026-05-01 13:24:02
+========================================
+
+No new posts found.
 ```
 
-*Last updated: 2026-05-01 13:22:34 UTC*
+*Last updated: 2026-05-01 13:24:02 UTC*
