@@ -33,17 +33,10 @@ Automatic Telegram channel posts logger using GitHub Actions.
 
 
 
+
 ## Latest Channel Posts
 
 ```
-Post #13:
-Server: 172.234.115.238 Port: 443 Secret: 3a3365be03d6bc13518d65e70a3146c2 @ProxyMTProto
-Link: https://t.mehttps://t.me/ProxyMTProto/47153
-----------------------------------------
-
-Post #14:
-Server: bin.mdnk.fun Port: 443 Secret: ee528a8923aaf3441d3a3652bd37e33a56706574726f766963682e7275 @ProxyMTProto
-Link: https://t.mehttps://t.me/ProxyMTProto/47154
 ----------------------------------------
 
 Post #15:
@@ -85,6 +78,14 @@ Run time: 2026-05-01 15:04:29
 ========================================
 
 No new posts. Checked: 20 posts
+
+
+========================================
+Channel: @napsternetv
+Run time: 2026-05-01 15:05:34
+========================================
+
+No new posts. Checked: 0 posts
 ```
 
-*Last updated: 2026-05-01 15:04:30 UTC*
+*Last updated: 2026-05-01 15:05:35 UTC*
