@@ -1,15 +1,13 @@
-name: Java CI
+name: Telegram Posts Fetcher
 
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
     - name: Set up JDK 11
@@ -19,5 +17,5 @@ jobs:
         distribution: 'temurin'
     - name: Build with Ant
       run: ant -noinput -buildfile build.xml
-    - name: Run Java program
-      run: java Main
+    - name: Run
+      run: java -cp build:lib/* Main
