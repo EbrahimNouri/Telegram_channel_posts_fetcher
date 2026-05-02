@@ -3,6 +3,7 @@
 - [@PinkProxy](channels/PinkProxy/index.html) - 19 posts
 - [@flatearthpersian](channels/flatearthpersian/index.html) - 3 posts
 - [@iblueweb](channels/iblueweb/index.html) - 20 posts
+- [@kafiha](channels/kafiha/index.html) - 20 posts
 - [@kirimohems](channels/kirimohems/index.html) - 20 posts
 - [@mitivpn](channels/mitivpn/index.html) - 20 posts
 - [@napsternetv](channels/napsternetv/index.html) - 0 posts
