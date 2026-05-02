@@ -2,7 +2,7 @@ name: Telegram Channel Archiver
 
 on:
   schedule:
-    - cron: '0 */12 * * *'
+    - cron: '0 */24 * * *'
   push:
     branches: [ "main" ]
   workflow_dispatch:
@@ -49,11 +49,13 @@ jobs:
       run: |
         echo "# Telegram Channels Archive" > README.md
         echo "" >> README.md
+        echo "| Channel | Posts |" >> README.md
+        echo "|---------|-------|" >> README.md
         for dir in channels/*/; do
           if [ -d "$dir" ]; then
             channel_name=$(basename "$dir")
             post_count=$(ls -1d "$dir"/*/ 2>/dev/null | wc -l)
-            echo "- [@$channel_name](${dir}index.html) - $post_count posts" >> README.md
+            echo "| [@$channel_name](${dir}index.html) | $post_count |" >> README.md
           fi
         done
         echo "" >> README.md
@@ -63,7 +65,7 @@ jobs:
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        git add channels/ README.md
+        git add channels/ README.md debug_*.html 2>/dev/null || true
         if git diff --staged --quiet; then
           echo "No changes"
         else
@@ -71,7 +73,14 @@ jobs:
           git push
         fi
     
-    - name: Upload Artifact
+    - name: Upload Debug HTML
+      uses: actions/upload-artifact@v4
+      with:
+        name: debug-html
+        path: debug_*.html
+        retention-days: 3
+    
+    - name: Upload Archive
       uses: actions/upload-artifact@v4
       with:
         name: channels-archive
