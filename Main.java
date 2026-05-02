@@ -218,7 +218,11 @@ public class Main {
             String videoUrl = extractVideoUrl(block);
             String documentUrl = extractDocumentUrl(block);
             String documentName = extractDocumentName(block);
-            
+            if (documentName != null) {
+                System.out.println("    Document name: " + documentName);
+            } else if (documentUrl != null) {
+                System.out.println("    WARNING: Could not extract document name!");
+            }            
             // ============ CREATE/UPDATE POST DIRECTORY ============
             String folderName;
             if (dateStr != null && !dateStr.isEmpty()) {
@@ -493,14 +497,49 @@ public class Main {
         return null;
     }
     
-    private static String extractDocumentName(String block) {
-        Pattern p = Pattern.compile(
-            "<span\\s+class=\"tgme_widget_message_document_title[^\"]*\"[^>]*>(.*?)</span>"
-        );
-        Matcher m = p.matcher(block);
-        if (m.find()) return m.group(1).trim();
-        return null;
+private static String extractDocumentName(String block) {
+    // Pattern 1: tgme_widget_message_document_title
+    Pattern p1 = Pattern.compile(
+        "<span\\s+class=\"tgme_widget_message_document_title[^\"]*\"[^>]*>(.*?)</span>",
+        Pattern.DOTALL
+    );
+    Matcher m1 = p1.matcher(block);
+    if (m1.find()) {
+        String name = m1.group(1).trim();
+        // Remove any HTML tags inside
+        name = name.replaceAll("<[^>]+>", "");
+        name = htmlUnescape(name);
+        if (!name.isEmpty()) return name;
     }
+    
+    // Pattern 2: Look for filename in the document wrap area
+    Pattern p2 = Pattern.compile(
+        "tgme_widget_message_document_wrap[^>]*>.*?<a[^>]*class=\"[^\"]*tgme_widget_message_document[^\"]*\"[^>]*>\\s*(.*?)\\s*</a>",
+        Pattern.DOTALL
+    );
+    Matcher m2 = p2.matcher(block);
+    if (m2.find()) {
+        String name = m2.group(1).trim();
+        name = name.replaceAll("<[^>]+>", "");
+        name = htmlUnescape(name);
+        if (!name.isEmpty()) return name;
+    }
+    
+    // Pattern 3: Any document link text
+    Pattern p3 = Pattern.compile(
+        "class=\"tgme_widget_message_document[^\"]*\"[^>]*href=\"[^\"]*\"[^>]*>\\s*(.*?)\\s*<",
+        Pattern.DOTALL
+    );
+    Matcher m3 = p3.matcher(block);
+    if (m3.find()) {
+        String name = m3.group(1).trim();
+        name = name.replaceAll("<[^>]+>", "");
+        name = htmlUnescape(name);
+        if (!name.isEmpty()) return name;
+    }
+    
+    return null;
+}
     
     // ==================== DOWNLOAD ====================
     
@@ -567,7 +606,51 @@ public class Main {
             String fileName;
             
             // Priority 1: Use original filename from Telegram document title
-            if (originalFileName != null && !originalFileName.isEmpty()) {
+            if (originalFileName != null && !originalFileName.isEmpty() && !originalFileName.matches("\\d+")) {
+                // Clean the filename but keep extension
+                fileName = originalFileName.trim();
+                // Remove emojis and special chars but keep Persian, dots, underscores
+                fileName = fileName.replaceAll("[^\\p{IsArabic}a-zA-Z0-9._\\-\\s]", "");
+                fileName = fileName.trim();
+                // Replace spaces with underscore
+                fileName = fileName.replaceAll("\\s+", "_");
+                // Remove multiple underscores
+                fileName = fileName.replaceAll("_+", "_");
+                
+                // If no extension after cleaning, add from URL
+                if (!fileName.contains(".")) {
+                    String extFromUrl = getExtensionFromUrl(cleanUrl);
+                    if (!extFromUrl.isEmpty()) {
+                        fileName += extFromUrl;
+                    }
+                }
+                
+                System.out.println("    Using original name: " + fileName);
+            } else if (originalFileName != null && originalFileName.matches("\\d+")) {
+                // originalFileName is just a number (post ID), ignore it
+                System.out.println("    Original name is numeric ID, using URL filename instead");
+                String urlFileName = getFileNameFromUrl(cleanUrl);
+                if (urlFileName != null && !urlFileName.isEmpty() && !urlFileName.matches("\\d+")) {
+                    fileName = urlFileName;
+                } else {
+                    String contentType = response.headers().firstValue("Content-Type").orElse("");
+                    String ext = getExtension(contentType, cleanUrl);
+                    fileName = prefix + "_" + System.currentTimeMillis() + ext;
+                }
+            } else {
+                // Priority 2: Use filename from URL
+                String urlFileName = getFileNameFromUrl(cleanUrl);
+                if (urlFileName != null && !urlFileName.isEmpty() && !urlFileName.matches("\\d+")) {
+                    fileName = urlFileName;
+                } else {
+                    // Priority 3: Generate with prefix
+                    String contentType = response.headers().firstValue("Content-Type").orElse("");
+                    String ext = getExtension(contentType, cleanUrl);
+                    fileName = prefix + "_" + System.currentTimeMillis() + ext;
+                }
+            }
+            
+            System.out.println("    Final filename: " + fileName);
                 fileName = originalFileName.replaceAll("[^a-zA-Z0-9آ-ی_\\-.]", "_");
                 // Remove double underscores
                 fileName = fileName.replaceAll("_+", "_");
