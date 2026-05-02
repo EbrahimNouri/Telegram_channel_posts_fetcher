@@ -546,6 +546,7 @@ public class Main {
         if (ct.contains("xml")) return ".xml";
         if (ct.contains("text/plain")) return ".txt";
         if (ct.contains("text/")) return ".txt";
+        if (ct.contains("npvt")) return ".npvt";
         
         return "";
     }
