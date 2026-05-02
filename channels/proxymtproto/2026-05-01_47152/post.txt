@@ -2,7 +2,7 @@ Channel: @proxymtproto
 Post ID: 47152
 Date: 2026-05-01
 Link: https://t.mehttps://t.me/ProxyMTProto/47152
-Archived: 2026-05-01 20:52:14
+Archived: 2026-05-02 02:52:35
 ========================================
 
 Server: gproxy-sosavpn.duckdns.org
