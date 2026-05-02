@@ -57,39 +57,45 @@ public class PostExtractor {
         }
         return null;
     }
-    
-    public static String extractDocumentName(String block) {
-        // Try multiple patterns
-        String name = null;
+public static String extractDocumentName(String block) {
+    // Pattern 1: Exact match for document title
+    Pattern p1 = Pattern.compile(
+        "<span\\s+class=\"tgme_widget_message_document_title[^\"]*\"[^>]*>(.*?)</span>",
+        Pattern.DOTALL
+    );
+    Matcher m1 = p1.matcher(block);
+    if (m1.find()) {
+        String name = m1.group(1).trim();
+        name = name.replaceAll("<[^>]+>", "");
+        name = htmlUnescape(name);
         
-        // Pattern 1: document title span
-        Pattern p1 = Pattern.compile(
-            "<span\\s+class=\"tgme_widget_message_document_title[^\"]*\"[^>]*>(.*?)</span>",
-            Pattern.DOTALL
-        );
-        Matcher m1 = p1.matcher(block);
-        if (m1.find()) {
-            name = m1.group(1).trim();
-            name = name.replaceAll("<[^>]+>", "");
-            name = htmlUnescape(name);
-            if (!name.isEmpty() && !name.matches("\\d+")) return name;
-        }
+        // CLEAN: Remove any size information that might be attached
+        // Remove patterns like "11.2 KB", "3.6kb", "6 KB" from the end
+        name = name.replaceAll("\\s+\\d+\\.?\\d*\\s*[KkMmGg][Bb]\\s*$", "");
+        name = name.replaceAll("\\s+\\d+\\s*[KkMmGg][Bb]\\s*$", "");
+        // Remove trailing spaces and dots
+        name = name.trim().replaceAll("[.\\s]+$", "");
         
-        // Pattern 2: document link text
-        Pattern p2 = Pattern.compile(
-            "class=\"tgme_widget_message_document[^\"]*\"[^>]*href=\"[^\"]*\"[^>]*>\\s*<[^>]+>\\s*(.*?)\\s*</a>",
-            Pattern.DOTALL
-        );
-        Matcher m2 = p2.matcher(block);
-        if (m2.find()) {
-            name = m2.group(1).trim();
-            name = name.replaceAll("<[^>]+>", "");
-            name = htmlUnescape(name);
-            if (!name.isEmpty() && !name.matches("\\d+")) return name;
-        }
-        
-        return null;
+        if (!name.isEmpty()) return name;
     }
+    
+    // Try other patterns if first fails
+    Pattern p2 = Pattern.compile(
+        "class=\"tgme_widget_message_document[^\"]*\"[^>]*href=\"[^\"]*\"[^>]*>.*?<span[^>]*>(.*?)</span>",
+        Pattern.DOTALL
+    );
+    Matcher m2 = p2.matcher(block);
+    if (m2.find()) {
+        String name = m2.group(1).trim();
+        name = name.replaceAll("<[^>]+>", "");
+        name = htmlUnescape(name);
+        name = name.replaceAll("\\s+\\d+\\.?\\d*\\s*[KkMmGg][Bb]\\s*$", "");
+        name = name.trim().replaceAll("[.\\s]+$", "");
+        if (!name.isEmpty()) return name;
+    }
+    
+    return null;
+}
     
     public static String htmlUnescape(String input) {
         if (input == null) return "";
