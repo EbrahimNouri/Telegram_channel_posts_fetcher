@@ -462,78 +462,186 @@ public class Main {
     // ==================== DOWNLOAD ====================
     
     private static String downloadFile(HttpClient client, String fileUrl, String destDir, String prefix) {
-        try {
-            // Clean URL
-            String cleanUrl = fileUrl.replace("https://t.mehttps://t.me/", "https://t.me/");
-            
-            HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(cleanUrl))
-                .header("User-Agent", "Mozilla/5.0")
-                .timeout(java.time.Duration.ofMinutes(3))
-                .GET()
-                .build();
-            
-            HttpResponse<InputStream> response = client.send(
-                request, HttpResponse.BodyHandlers.ofInputStream()
-            );
-            
-            if (response.statusCode() != 200) return null;
-            
-            String contentLength = response.headers().firstValue("Content-Length").orElse("0");
-            long size = 0;
-            try { size = Long.parseLong(contentLength); } catch (Exception e) {}
-            
-            if (size > MAX_DOWNLOAD_SIZE) {
-                System.out.println("    Skipping large file: " + size + " bytes");
-                return null;
+    try {
+        // Clean double URL
+        String cleanUrl = fileUrl.replace("https://t.mehttps://t.me/", "https://t.me/");
+        
+        System.out.println("    Downloading: " + cleanUrl);
+        
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(cleanUrl))
+            .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+            .header("Accept", "*/*")
+            .timeout(java.time.Duration.ofMinutes(5))
+            .GET()
+            .build();
+        
+        HttpResponse<InputStream> response = client.send(
+            request, HttpResponse.BodyHandlers.ofInputStream()
+        );
+        
+        // Check redirect - follow if needed
+        int statusCode = response.statusCode();
+        if (statusCode == 301 || statusCode == 302 || statusCode == 307 || statusCode == 308) {
+            String redirectUrl = response.headers().firstValue("Location").orElse(null);
+            if (redirectUrl != null) {
+                // Follow redirect manually
+                if (!redirectUrl.startsWith("http")) {
+                    redirectUrl = "https://t.me" + redirectUrl;
+                }
+                System.out.println("    Following redirect to: " + redirectUrl);
+                request = HttpRequest.newBuilder()
+                    .uri(URI.create(redirectUrl))
+                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                    .header("Accept", "*/*")
+                    .timeout(java.time.Duration.ofMinutes(5))
+                    .GET()
+                    .build();
+                response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
+                statusCode = response.statusCode();
             }
-            
-            String contentType = response.headers().firstValue("Content-Type").orElse("");
-            String ext = getExtension(contentType, cleanUrl);
-            
-            String fileName = prefix + "_" + System.currentTimeMillis() + ext;
-            Path filePath = Paths.get(destDir, fileName);
-            
-            Files.copy(response.body(), filePath, StandardCopyOption.REPLACE_EXISTING);
-            
-            long actualSize = Files.size(filePath);
-            if (actualSize == 0) {
-                Files.delete(filePath);
-                return null;
-            }
-            
-            System.out.println("    Downloaded: " + fileName + " (" + actualSize + " bytes)");
-            return fileName;
-        } catch (Exception e) {
-            System.out.println("    Download failed: " + e.getMessage());
+        }
+        
+        if (statusCode != 200) {
+            System.out.println("    HTTP " + statusCode + " - skipping");
             return null;
         }
+        
+        // Get content type (important for extension)
+        String contentType = response.headers().firstValue("Content-Type").orElse("application/octet-stream");
+        
+        // Get content length (optional - don't skip if not present)
+        String contentLength = response.headers().firstValue("Content-Length").orElse("-1");
+        long size = -1;
+        try { size = Long.parseLong(contentLength); } catch (Exception e) {}
+        
+        System.out.println("    Content-Type: " + contentType + ", Size: " + (size > 0 ? size + " bytes" : "unknown"));
+        
+        // Only skip if we KNOW it's too large
+        if (size > MAX_DOWNLOAD_SIZE) {
+            System.out.println("    Too large (" + size + " bytes), skipping");
+            return null;
+        }
+        
+        // Determine extension
+        String ext = getExtension(contentType, cleanUrl);
+        
+        // Generate filename - use meaningful prefix
+        String fileName = prefix + "_" + System.currentTimeMillis() + ext;
+        Path filePath = Paths.get(destDir, fileName);
+        
+        // Save file - use InputStream directly
+        try (InputStream is = response.body()) {
+            Files.copy(is, filePath, StandardCopyOption.REPLACE_EXISTING);
+        }
+        
+        long actualSize = Files.size(filePath);
+        
+        // Check if file is actually downloaded (not empty)
+        if (actualSize == 0) {
+            Files.delete(filePath);
+            System.out.println("    Empty file, deleted");
+            return null;
+        }
+        
+        // If too large after download, delete
+        if (actualSize > MAX_DOWNLOAD_SIZE) {
+            Files.delete(filePath);
+            System.out.println("    Downloaded file too large (" + actualSize + " bytes), deleted");
+            return null;
+        }
+        
+        System.out.println("    Saved: " + fileName + " (" + actualSize + " bytes)");
+        return fileName;
+        
+    } catch (Exception e) {
+        System.out.println("    Error: " + e.getMessage());
+        return null;
     }
+}
     
-    private static String getExtension(String contentType, String url) {
-        try {
-            String path = new URI(url).getPath();
-            String fileName = Paths.get(path).getFileName().toString();
-            if (fileName.contains("?")) fileName = fileName.substring(0, fileName.indexOf("?"));
-            if (fileName.contains(".")) {
-                String ext = fileName.substring(fileName.lastIndexOf("."));
-                ext = ext.replaceAll("[^a-zA-Z0-9.]", "");
-                if (ext.length() > 1 && ext.length() < 10) return ext;
+  private static String getExtension(String contentType, String url) {
+    // اول از URL پسوند رو دربیار (مطمئن‌ترین روش)
+    try {
+        String path = new URI(url).getPath();
+        // Remove query string
+        if (path.contains("?")) path = path.substring(0, path.indexOf("?"));
+        String fileName = Paths.get(path).getFileName().toString();
+        
+        if (fileName.contains(".")) {
+            String ext = fileName.substring(fileName.lastIndexOf("."));
+            // Clean extension: only letters, numbers, dot
+            ext = ext.replaceAll("[^a-zA-Z0-9.]", "");
+            if (ext.length() >= 2 && ext.length() <= 10) {
+                System.out.println("    Extension from URL: " + ext);
+                return ext.toLowerCase();
             }
-        } catch (Exception ignored) {}
-        
-        if (contentType.contains("jpeg") || contentType.contains("jpg")) return ".jpg";
-        if (contentType.contains("png")) return ".png";
-        if (contentType.contains("gif")) return ".gif";
-        if (contentType.contains("webp")) return ".webp";
-        if (contentType.contains("mp4") || contentType.contains("video")) return ".mp4";
-        if (contentType.contains("pdf")) return ".pdf";
-        if (contentType.contains("zip")) return ".zip";
-        if (contentType.contains("rar")) return ".rar";
-        if (contentType.contains("octet-stream")) return ".bin";
-        if (contentType.contains("text") || contentType.contains("plain")) return ".txt";
-        
-        return "";
+        }
+    } catch (Exception ignored) {}
+    
+    // بعد از Content-Type تشخیص بده
+    if (contentType == null) return "";
+    
+    String ct = contentType.toLowerCase();
+    
+    // Images
+    if (ct.contains("jpeg") || ct.contains("jpg")) return ".jpg";
+    if (ct.contains("png")) return ".png";
+    if (ct.contains("gif")) return ".gif";
+    if (ct.contains("webp")) return ".webp";
+    if (ct.contains("svg")) return ".svg";
+    if (ct.contains("bmp")) return ".bmp";
+    if (ct.contains("ico") || ct.contains("icon")) return ".ico";
+    
+    // Video
+    if (ct.contains("mp4") || ct.contains("video/mp4")) return ".mp4";
+    if (ct.contains("webm")) return ".webm";
+    if (ct.contains("ogg") || ct.contains("ogv")) return ".ogv";
+    if (ct.contains("video/")) return ".mp4"; // default video
+    
+    // Audio
+    if (ct.contains("mp3") || ct.contains("mpeg")) return ".mp3";
+    if (ct.contains("wav")) return ".wav";
+    if (ct.contains("flac")) return ".flac";
+    if (ct.contains("aac")) return ".aac";
+    if (ct.contains("audio/")) return ".mp3"; // default audio
+    
+    // Documents
+    if (ct.contains("pdf")) return ".pdf";
+    if (ct.contains("zip")) return ".zip";
+    if (ct.contains("rar")) return ".rar";
+    if (ct.contains("7z") || ct.contains("7-zip")) return ".7z";
+    if (ct.contains("tar")) return ".tar";
+    if (ct.contains("gz") || ct.contains("gzip")) return ".gz";
+    
+    // Text
+    if (ct.contains("json")) return ".json";
+    if (ct.contains("xml")) return ".xml";
+    if (ct.contains("html")) return ".html";
+    if (ct.contains("css")) return ".css";
+    if (ct.contains("javascript") || ct.contains("ecmascript")) return ".js";
+    if (ct.contains("text/plain")) return ".txt";
+    if (ct.contains("text/")) return ".txt";
+    
+    // Microsoft Office
+    if (ct.contains("word") || ct.contains("docx")) return ".docx";
+    if (ct.contains("excel") || ct.contains("xlsx") || ct.contains("spreadsheet")) return ".xlsx";
+    if (ct.contains("powerpoint") || ct.contains("pptx") || ct.contains("presentation")) return ".pptx";
+    
+    // Open Document
+    if (ct.contains("opendocument.text")) return ".odt";
+    if (ct.contains("opendocument.spreadsheet")) return ".ods";
+    
+    // Executables
+    if (ct.contains("exe") || ct.contains("x-msdownload")) return ".exe";
+    if (ct.contains("apk") || ct.contains("android")) return ".apk";
+    
+    // Archives / Binary
+    if (ct.contains("octet-stream") || ct.contains("binary")) return ".bin";
+    
+    // Unknown - no extension
+    System.out.println("    Unknown content type: " + ct);
+    return "";
     }
     
     // ==================== UTILITY ====================
