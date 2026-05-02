@@ -7,7 +7,7 @@
 - [@mitivpn](channels/mitivpn/index.html) - 20 posts
 - [@napsternetv](channels/napsternetv/index.html) - 0 posts
 - [@netmelli15](channels/netmelli15/index.html) - 19 posts
-- [@proxymtproto](channels/proxymtproto/index.html) - 1 posts
+- [@proxymtproto](channels/proxymtproto/index.html) - 2 posts
 - [@proxymtprotoir](channels/proxymtprotoir/index.html) - 20 posts
 
 *Auto-updated every hour*
