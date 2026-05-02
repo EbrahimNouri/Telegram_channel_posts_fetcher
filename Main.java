@@ -12,7 +12,7 @@ public class Main {
     private static final long MAX_DOWNLOAD_SIZE = 50 * 1024 * 1024; // 50MB
     
     public static void main(String[] args) throws Exception {
-        System.out.println("=== Telegram Channel Archiver v2 ===");
+        System.out.println("=== Telegram Channel Archiver v3 - No Skip ===");
         
         String channelUsername = System.getenv("CHANNEL_USERNAME");
         String postCountStr = System.getenv("POST_COUNT");
@@ -37,72 +37,63 @@ public class Main {
         
         System.out.println("Channel: @" + channelUsername);
         System.out.println("Max posts: " + maxPosts);
+        System.out.println("Mode: Always fetch (no skip)");
         
-        // ============ LOAD EXISTING POST IDs ============
-        Set<String> existingPostIds = new LinkedHashSet<>();
-        List<PostData> existingPosts = new ArrayList<>();
+        // ============ LOAD EXISTING POSTS FOR INDEX MERGING ============
+        // We still read old posts to merge them in index.html
+        // But we DO NOT skip any post - we re-download everything
+        Set<String> oldPostIdsFromFolders = new LinkedHashSet<>();
+        List<PostData> oldPostsForIndex = new ArrayList<>();
         
-        File indexFile = new File(indexPath);
-        if (indexFile.exists()) {
-            String indexContent = new String(Files.readAllBytes(indexFile.toPath()));
-            
-            // Extract post cards with their IDs
-            Pattern cardPattern = Pattern.compile(
-                "data-post-id=\"(\\d+)\"[^>]*>.*?" +
-                "<div class=\"post-date\">([^<]*)</div>.*?" +
-                "<div class=\"post-text\">([^<]*)</div>",
-                Pattern.DOTALL
-            );
-            Matcher cardMatcher = cardPattern.matcher(indexContent);
-            while (cardMatcher.find()) {
-                String id = cardMatcher.group(1);
-                String date = cardMatcher.group(2);
-                String text = cardMatcher.group(3);
-                
-                existingPostIds.add(id);
-                
-                PostData pd = new PostData();
-                pd.postId = id;
-                pd.dateStr = date;
-                pd.text = htmlUnescape(text);
-                existingPosts.add(pd);
-            }
-            
-            // Also scan directories for posts not in index
-            File channelFolder = new File(channelDir);
-            File[] subDirs = channelFolder.listFiles(File::isDirectory);
-            if (subDirs != null) {
-                for (File subDir : subDirs) {
-                    String dirName = subDir.getName();
-                    Pattern dirIdPattern = Pattern.compile("_(\\d+)$");
-                    Matcher dirIdMatcher = dirIdPattern.matcher(dirName);
-                    if (dirIdMatcher.find()) {
-                        String id = dirIdMatcher.group(1);
-                        if (!existingPostIds.contains(id)) {
-                            existingPostIds.add(id);
-                            PostData pd = new PostData();
-                            pd.postId = id;
-                            pd.folderName = dirName;
-                            // Try to read post.txt
-                            File postTxtFile = new File(subDir, "post.txt");
-                            if (postTxtFile.exists()) {
+        File channelFolder = new File(channelDir);
+        File[] subDirs = channelFolder.listFiles(File::isDirectory);
+        if (subDirs != null) {
+            for (File subDir : subDirs) {
+                String dirName = subDir.getName();
+                Pattern dirIdPattern = Pattern.compile("_(\\d+)$");
+                Matcher dirIdMatcher = dirIdPattern.matcher(dirName);
+                if (dirIdMatcher.find()) {
+                    String id = dirIdMatcher.group(1);
+                    if (!oldPostIdsFromFolders.contains(id)) {
+                        oldPostIdsFromFolders.add(id);
+                        PostData pd = new PostData();
+                        pd.postId = id;
+                        pd.folderName = dirName;
+                        
+                        File postTxtFile = new File(subDir, "post.txt");
+                        if (postTxtFile.exists()) {
+                            try {
                                 String content = new String(Files.readAllBytes(postTxtFile.toPath()));
                                 Pattern dateP = Pattern.compile("Date: ([^\n]+)");
                                 Matcher dateM = dateP.matcher(content);
                                 if (dateM.find()) pd.dateStr = dateM.group(1).trim();
                                 
-                                // Get text after ====
                                 String[] parts = content.split("====+\n+", 2);
                                 if (parts.length > 1) pd.text = parts[1].trim();
+                            } catch (Exception e) {
+                                // ignore corrupted files
                             }
-                            existingPosts.add(pd);
                         }
+                        
+                        // Check for media files in folder
+                        File[] mediaFiles = subDir.listFiles((f) -> !f.getName().equals("post.txt"));
+                        if (mediaFiles != null) {
+                            for (File mf : mediaFiles) {
+                                pd.files.add(mf.getName());
+                                String name = mf.getName().toLowerCase();
+                                if (name.contains("photo") || name.endsWith(".jpg") || name.endsWith(".png") || name.endsWith(".jpeg")) pd.hasPhoto = true;
+                                if (name.contains("video") || name.endsWith(".mp4")) pd.hasVideo = true;
+                                if (!pd.hasPhoto && !pd.hasVideo) pd.hasDocument = true;
+                            }
+                        }
+                        
+                        oldPostsForIndex.add(pd);
                     }
                 }
             }
         }
         
-        System.out.println("Existing posts found: " + existingPostIds.size());
+        System.out.println("Old posts found in archive: " + oldPostsForIndex.size());
         
         // ============ FETCH TELEGRAM PAGE ============
         String url = "https://t.me/s/" + channelUsername;
@@ -127,25 +118,14 @@ public class Main {
         
         System.out.println("HTML size: " + html.length() + " bytes");
         
-        // ============ BETTER POST EXTRACTION ============
-        // Each post starts with: <div class="tgme_widget_message_wrap
-        // And has a message date link with post ID
-        
-        // Find ALL message containers first
-        Pattern messageContainerPattern = Pattern.compile(
-            "<div class=\"tgme_widget_message_wrap[^\"]*\"[^>]*>(.*?)</div>\\s*</div>\\s*</div>",
-            Pattern.DOTALL
-        );
-        
-        // Also find all message date links to get post IDs
+        // ============ FIND ALL POST LINKS ============
         Pattern allLinksPattern = Pattern.compile(
             "<a class=\"tgme_widget_message_date\" href=\"/([^/]+)/(\\d+)\">"
         );
         
         Matcher linkMatcher = allLinksPattern.matcher(html);
         
-        // Collect all post links first
-        List<String[]> allPostLinks = new ArrayList<>(); // [channel, id]
+        List<String[]> allPostLinks = new ArrayList<>();
         while (linkMatcher.find()) {
             String ch = linkMatcher.group(1);
             String id = linkMatcher.group(2);
@@ -154,15 +134,14 @@ public class Main {
         
         System.out.println("Total message links found: " + allPostLinks.size());
         
-        // ============ PROCESS EACH POST INDIVIDUALLY ============
-        // Better approach: split HTML by message containers
+        // ============ SPLIT HTML INTO MESSAGE BLOCKS ============
         String[] messageBlocks = html.split("<div class=\"tgme_widget_message_wrap");
         
         System.out.println("Message blocks found: " + (messageBlocks.length - 1));
         
-        List<PostData> newPosts = new ArrayList<>();
+        // ============ PROCESS EACH POST - NO SKIPPING ============
+        Map<String, PostData> newPostsMap = new LinkedHashMap<>(); // postId -> PostData
         int checked = 0;
-        int skipped = 0;
         
         for (int i = 1; i < messageBlocks.length && checked < maxPosts; i++) {
             String block = messageBlocks[i];
@@ -175,12 +154,7 @@ public class Main {
             
             String postId = idMatcher.group(1);
             
-            // Skip already archived
-            if (existingPostIds.contains(postId)) {
-                skipped++;
-                continue;
-            }
-            
+            // NEVER SKIP - always process
             checked++;
             
             // Extract post data from this block
@@ -204,10 +178,11 @@ public class Main {
             String postDir = channelDir + "/" + folderName;
             new File(postDir).mkdirs();
             
-            System.out.println("[" + newPosts.size() + "] " + folderName + 
-                (photoUrl != null ? " 📷" : "") + 
-                (videoUrl != null ? " 🎬" : "") + 
-                (documentUrl != null ? " 📎" : ""));
+            System.out.println("[" + (newPostsMap.size() + 1) + "] " + folderName + 
+                (photoUrl != null ? " [PHOTO]" : "") + 
+                (videoUrl != null ? " [VIDEO]" : "") + 
+                (documentUrl != null ? " [FILE]" : "") + 
+                (text.isEmpty() ? "" : " - " + text.substring(0, Math.min(40, text.length())) + "..."));
             
             // ============ SAVE POST.TXT ============
             StringBuilder postTxt = new StringBuilder();
@@ -257,13 +232,21 @@ public class Main {
             pd.hasVideo = videoUrl != null;
             pd.hasDocument = documentUrl != null;
             
-            newPosts.add(pd);
-            existingPostIds.add(postId);
+            newPostsMap.put(postId, pd);
         }
         
-        // ============ MERGE ALL POSTS (existing + new) ============
-        List<PostData> allPosts = new ArrayList<>(newPosts);
-        allPosts.addAll(existingPosts);
+        // ============ MERGE ALL POSTS (old + new, prefer new) ============
+        List<PostData> allPosts = new ArrayList<>();
+        
+        // Add new posts first
+        allPosts.addAll(newPostsMap.values());
+        
+        // Add old posts that are not in new posts
+        for (PostData oldPd : oldPostsForIndex) {
+            if (!newPostsMap.containsKey(oldPd.postId)) {
+                allPosts.add(oldPd);
+            }
+        }
         
         // Sort by post ID descending (newest first)
         allPosts.sort((a, b) -> {
@@ -273,6 +256,9 @@ public class Main {
                 return 0;
             }
         });
+        
+        System.out.println("\nMerged: " + newPostsMap.size() + " new + " + 
+            (allPosts.size() - newPostsMap.size()) + " old = " + allPosts.size() + " total");
         
         // ============ REBUILD INDEX.HTML ============
         StringBuilder indexHtml = new StringBuilder();
@@ -372,9 +358,9 @@ public class Main {
         System.out.println("Channel: @" + channelUsername);
         System.out.println("HTML message links found: " + allPostLinks.size());
         System.out.println("Message blocks: " + (messageBlocks.length - 1));
-        System.out.println("New posts archived: " + newPosts.size());
-        System.out.println("Skipped (already exist): " + skipped);
-        System.out.println("Total in archive: " + allPosts.size());
+        System.out.println("Posts processed this run: " + newPostsMap.size());
+        System.out.println("Old posts from archive: " + (allPosts.size() - newPostsMap.size()));
+        System.out.println("Total in index: " + allPosts.size());
         System.out.println("==========================================");
     }
     
@@ -462,188 +448,159 @@ public class Main {
     // ==================== DOWNLOAD ====================
     
     private static String downloadFile(HttpClient client, String fileUrl, String destDir, String prefix) {
-    try {
-        // Clean double URL
-        String cleanUrl = fileUrl.replace("https://t.mehttps://t.me/", "https://t.me/");
-        
-        System.out.println("    Downloading: " + cleanUrl);
-        
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(cleanUrl))
-            .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-            .header("Accept", "*/*")
-            .timeout(java.time.Duration.ofMinutes(5))
-            .GET()
-            .build();
-        
-        HttpResponse<InputStream> response = client.send(
-            request, HttpResponse.BodyHandlers.ofInputStream()
-        );
-        
-        // Check redirect - follow if needed
-        int statusCode = response.statusCode();
-        if (statusCode == 301 || statusCode == 302 || statusCode == 307 || statusCode == 308) {
-            String redirectUrl = response.headers().firstValue("Location").orElse(null);
-            if (redirectUrl != null) {
-                // Follow redirect manually
-                if (!redirectUrl.startsWith("http")) {
-                    redirectUrl = "https://t.me" + redirectUrl;
+        try {
+            String cleanUrl = fileUrl.replace("https://t.mehttps://t.me/", "https://t.me/");
+            
+            System.out.println("    Downloading: " + cleanUrl);
+            
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(cleanUrl))
+                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                .header("Accept", "*/*")
+                .timeout(java.time.Duration.ofMinutes(5))
+                .GET()
+                .build();
+            
+            HttpResponse<InputStream> response = client.send(
+                request, HttpResponse.BodyHandlers.ofInputStream()
+            );
+            
+            int statusCode = response.statusCode();
+            if (statusCode == 301 || statusCode == 302 || statusCode == 307 || statusCode == 308) {
+                String redirectUrl = response.headers().firstValue("Location").orElse(null);
+                if (redirectUrl != null) {
+                    if (!redirectUrl.startsWith("http")) {
+                        redirectUrl = "https://t.me" + redirectUrl;
+                    }
+                    System.out.println("    Following redirect to: " + redirectUrl);
+                    request = HttpRequest.newBuilder()
+                        .uri(URI.create(redirectUrl))
+                        .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                        .header("Accept", "*/*")
+                        .timeout(java.time.Duration.ofMinutes(5))
+                        .GET()
+                        .build();
+                    response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
+                    statusCode = response.statusCode();
                 }
-                System.out.println("    Following redirect to: " + redirectUrl);
-                request = HttpRequest.newBuilder()
-                    .uri(URI.create(redirectUrl))
-                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-                    .header("Accept", "*/*")
-                    .timeout(java.time.Duration.ofMinutes(5))
-                    .GET()
-                    .build();
-                response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
-                statusCode = response.statusCode();
             }
-        }
-        
-        if (statusCode != 200) {
-            System.out.println("    HTTP " + statusCode + " - skipping");
+            
+            if (statusCode != 200) {
+                System.out.println("    HTTP " + statusCode + " - skipping");
+                return null;
+            }
+            
+            String contentType = response.headers().firstValue("Content-Type").orElse("application/octet-stream");
+            String contentLength = response.headers().firstValue("Content-Length").orElse("-1");
+            long size = -1;
+            try { size = Long.parseLong(contentLength); } catch (Exception e) {}
+            
+            System.out.println("    Content-Type: " + contentType + ", Size: " + (size > 0 ? size + " bytes" : "unknown"));
+            
+            if (size > MAX_DOWNLOAD_SIZE) {
+                System.out.println("    Too large (" + size + " bytes), skipping");
+                return null;
+            }
+            
+            String ext = getExtension(contentType, cleanUrl);
+            String fileName = prefix + "_" + System.currentTimeMillis() + ext;
+            Path filePath = Paths.get(destDir, fileName);
+            
+            try (InputStream is = response.body()) {
+                Files.copy(is, filePath, StandardCopyOption.REPLACE_EXISTING);
+            }
+            
+            long actualSize = Files.size(filePath);
+            
+            if (actualSize == 0) {
+                Files.delete(filePath);
+                System.out.println("    Empty file, deleted");
+                return null;
+            }
+            
+            if (actualSize > MAX_DOWNLOAD_SIZE) {
+                Files.delete(filePath);
+                System.out.println("    Downloaded file too large (" + actualSize + " bytes), deleted");
+                return null;
+            }
+            
+            System.out.println("    Saved: " + fileName + " (" + actualSize + " bytes)");
+            return fileName;
+            
+        } catch (Exception e) {
+            System.out.println("    Error: " + e.getMessage());
             return null;
         }
-        
-        // Get content type (important for extension)
-        String contentType = response.headers().firstValue("Content-Type").orElse("application/octet-stream");
-        
-        // Get content length (optional - don't skip if not present)
-        String contentLength = response.headers().firstValue("Content-Length").orElse("-1");
-        long size = -1;
-        try { size = Long.parseLong(contentLength); } catch (Exception e) {}
-        
-        System.out.println("    Content-Type: " + contentType + ", Size: " + (size > 0 ? size + " bytes" : "unknown"));
-        
-        // Only skip if we KNOW it's too large
-        if (size > MAX_DOWNLOAD_SIZE) {
-            System.out.println("    Too large (" + size + " bytes), skipping");
-            return null;
-        }
-        
-        // Determine extension
-        String ext = getExtension(contentType, cleanUrl);
-        
-        // Generate filename - use meaningful prefix
-        String fileName = prefix + "_" + System.currentTimeMillis() + ext;
-        Path filePath = Paths.get(destDir, fileName);
-        
-        // Save file - use InputStream directly
-        try (InputStream is = response.body()) {
-            Files.copy(is, filePath, StandardCopyOption.REPLACE_EXISTING);
-        }
-        
-        long actualSize = Files.size(filePath);
-        
-        // Check if file is actually downloaded (not empty)
-        if (actualSize == 0) {
-            Files.delete(filePath);
-            System.out.println("    Empty file, deleted");
-            return null;
-        }
-        
-        // If too large after download, delete
-        if (actualSize > MAX_DOWNLOAD_SIZE) {
-            Files.delete(filePath);
-            System.out.println("    Downloaded file too large (" + actualSize + " bytes), deleted");
-            return null;
-        }
-        
-        System.out.println("    Saved: " + fileName + " (" + actualSize + " bytes)");
-        return fileName;
-        
-    } catch (Exception e) {
-        System.out.println("    Error: " + e.getMessage());
-        return null;
     }
-}
     
-  private static String getExtension(String contentType, String url) {
-    // اول از URL پسوند رو دربیار (مطمئن‌ترین روش)
-    try {
-        String path = new URI(url).getPath();
-        // Remove query string
-        if (path.contains("?")) path = path.substring(0, path.indexOf("?"));
-        String fileName = Paths.get(path).getFileName().toString();
-        
-        if (fileName.contains(".")) {
-            String ext = fileName.substring(fileName.lastIndexOf("."));
-            // Clean extension: only letters, numbers, dot
-            ext = ext.replaceAll("[^a-zA-Z0-9.]", "");
-            if (ext.length() >= 2 && ext.length() <= 10) {
-                System.out.println("    Extension from URL: " + ext);
-                return ext.toLowerCase();
+    private static String getExtension(String contentType, String url) {
+        try {
+            String path = new URI(url).getPath();
+            if (path.contains("?")) path = path.substring(0, path.indexOf("?"));
+            String fileName = Paths.get(path).getFileName().toString();
+            
+            if (fileName.contains(".")) {
+                String ext = fileName.substring(fileName.lastIndexOf("."));
+                ext = ext.replaceAll("[^a-zA-Z0-9.]", "");
+                if (ext.length() >= 2 && ext.length() <= 10) {
+                    System.out.println("    Extension from URL: " + ext);
+                    return ext.toLowerCase();
+                }
             }
-        }
-    } catch (Exception ignored) {}
-    
-    // بعد از Content-Type تشخیص بده
-    if (contentType == null) return "";
-    
-    String ct = contentType.toLowerCase();
-    
-    // Images
-    if (ct.contains("jpeg") || ct.contains("jpg")) return ".jpg";
-    if (ct.contains("png")) return ".png";
-    if (ct.contains("gif")) return ".gif";
-    if (ct.contains("webp")) return ".webp";
-    if (ct.contains("svg")) return ".svg";
-    if (ct.contains("bmp")) return ".bmp";
-    if (ct.contains("ico") || ct.contains("icon")) return ".ico";
-    
-    // Video
-    if (ct.contains("mp4") || ct.contains("video/mp4")) return ".mp4";
-    if (ct.contains("webm")) return ".webm";
-    if (ct.contains("ogg") || ct.contains("ogv")) return ".ogv";
-    if (ct.contains("video/")) return ".mp4"; // default video
-    
-    // Audio
-    if (ct.contains("mp3") || ct.contains("mpeg")) return ".mp3";
-    if (ct.contains("wav")) return ".wav";
-    if (ct.contains("flac")) return ".flac";
-    if (ct.contains("aac")) return ".aac";
-    if (ct.contains("audio/")) return ".mp3"; // default audio
-    
-    // Documents
-    if (ct.contains("pdf")) return ".pdf";
-    if (ct.contains("zip")) return ".zip";
-    if (ct.contains("rar")) return ".rar";
-    if (ct.contains("7z") || ct.contains("7-zip")) return ".7z";
-    if (ct.contains("tar")) return ".tar";
-    if (ct.contains("gz") || ct.contains("gzip")) return ".gz";
-    
-    // Text
-    if (ct.contains("json")) return ".json";
-    if (ct.contains("xml")) return ".xml";
-    if (ct.contains("html")) return ".html";
-    if (ct.contains("css")) return ".css";
-    if (ct.contains("javascript") || ct.contains("ecmascript")) return ".js";
-    if (ct.contains("text/plain")) return ".txt";
-    if (ct.contains("text/")) return ".txt";
-    
-    // Microsoft Office
-    if (ct.contains("word") || ct.contains("docx")) return ".docx";
-    if (ct.contains("excel") || ct.contains("xlsx") || ct.contains("spreadsheet")) return ".xlsx";
-    if (ct.contains("powerpoint") || ct.contains("pptx") || ct.contains("presentation")) return ".pptx";
-    
-    // Open Document
-    if (ct.contains("opendocument.text")) return ".odt";
-    if (ct.contains("opendocument.spreadsheet")) return ".ods";
-    
-    // Executables
-    if (ct.contains("exe") || ct.contains("x-msdownload")) return ".exe";
-    if (ct.contains("apk") || ct.contains("android")) return ".apk";
-    if (ct.contains("npvt")) return ".npvt";
-
-    
-    // Archives / Binary
-    if (ct.contains("octet-stream") || ct.contains("binary")) return ".bin";
-    
-    // Unknown - no extension
-    System.out.println("    Unknown content type: " + ct);
-    return "";
+        } catch (Exception ignored) {}
+        
+        if (contentType == null) return "";
+        
+        String ct = contentType.toLowerCase();
+        
+        if (ct.contains("jpeg") || ct.contains("jpg")) return ".jpg";
+        if (ct.contains("png")) return ".png";
+        if (ct.contains("gif")) return ".gif";
+        if (ct.contains("webp")) return ".webp";
+        if (ct.contains("svg")) return ".svg";
+        if (ct.contains("bmp")) return ".bmp";
+        if (ct.contains("ico") || ct.contains("icon")) return ".ico";
+        
+        if (ct.contains("mp4") || ct.contains("video/mp4")) return ".mp4";
+        if (ct.contains("webm")) return ".webm";
+        if (ct.contains("ogg") || ct.contains("ogv")) return ".ogv";
+        if (ct.contains("video/")) return ".mp4";
+        
+        if (ct.contains("mp3") || ct.contains("mpeg")) return ".mp3";
+        if (ct.contains("wav")) return ".wav";
+        if (ct.contains("flac")) return ".flac";
+        if (ct.contains("aac")) return ".aac";
+        if (ct.contains("audio/")) return ".mp3";
+        
+        if (ct.contains("pdf")) return ".pdf";
+        if (ct.contains("zip")) return ".zip";
+        if (ct.contains("rar")) return ".rar";
+        if (ct.contains("7z") || ct.contains("7-zip")) return ".7z";
+        if (ct.contains("tar")) return ".tar";
+        if (ct.contains("gz") || ct.contains("gzip")) return ".gz";
+        
+        if (ct.contains("json")) return ".json";
+        if (ct.contains("xml")) return ".xml";
+        if (ct.contains("html")) return ".html";
+        if (ct.contains("css")) return ".css";
+        if (ct.contains("javascript") || ct.contains("ecmascript")) return ".js";
+        if (ct.contains("text/plain")) return ".txt";
+        if (ct.contains("text/")) return ".txt";
+        
+        if (ct.contains("word") || ct.contains("docx")) return ".docx";
+        if (ct.contains("excel") || ct.contains("xlsx") || ct.contains("spreadsheet")) return ".xlsx";
+        if (ct.contains("powerpoint") || ct.contains("pptx") || ct.contains("presentation")) return ".pptx";
+        
+        if (ct.contains("opendocument.text")) return ".odt";
+        if (ct.contains("opendocument.spreadsheet")) return ".ods";
+        
+        if (ct.contains("exe") || ct.contains("x-msdownload")) return ".exe";
+        if (ct.contains("apk") || ct.contains("android")) return ".apk";
+        
+        if (ct.contains("octet-stream") || ct.contains("binary")) return ".bin";
+        
+        System.out.println("    Unknown content type: " + ct);
+        return "";
     }
     
     // ==================== UTILITY ====================
