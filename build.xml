@@ -1,26 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="TelegramReader" default="build" basedir=".">
-    <property name="lib.dir" value="lib"/>
+<project name="TelegramArchiver" default="build" basedir=".">
+    <property name="src.dir" value="src"/>
+    <property name="build.dir" value="build"/>
+    
+    <target name="clean">
+        <delete dir="${build.dir}"/>
+    </target>
     
     <target name="init">
-        <mkdir dir="${lib.dir}"/>
-        <mkdir dir="build"/>
+        <mkdir dir="${build.dir}"/>
     </target>
     
-    <target name="download-deps" depends="init">
-        <get src="https://repo1.maven.org/maven2/org/json/json/20230227/json-20230227.jar" 
-             dest="${lib.dir}/json.jar" skipexisting="true"/>
-        <get src="https://repo1.maven.org/maven2/org/apache/commons/commons-text/1.10.0/commons-text-1.10.0.jar" 
-             dest="${lib.dir}/commons-text.jar" skipexisting="true"/>
-        <get src="https://repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.12.0/commons-lang3-3.12.0.jar" 
-             dest="${lib.dir}/commons-lang3.jar" skipexisting="true"/>
-    </target>
-    
-    <target name="build" depends="download-deps">
-        <javac srcdir="." destdir="build" includeantruntime="false">
-            <classpath>
-                <fileset dir="${lib.dir}" includes="**/*.jar"/>
-            </classpath>
+    <target name="build" depends="clean,init">
+        <javac srcdir="${src.dir}" destdir="${build.dir}" includeantruntime="false" debug="true">
+            <include name="**/*.java"/>
         </javac>
     </target>
 </project>
