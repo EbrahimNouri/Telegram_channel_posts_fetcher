@@ -118,7 +118,18 @@ public class Main {
         
         System.out.println("HTML size: " + html.length() + " bytes");
         
+        // ============ DEBUG: Save HTML for inspection ============
+        try {
+            FileWriter debugFw = new FileWriter("debug_" + channelUsername + ".html");
+            debugFw.write(html);
+            debugFw.close();
+            System.out.println("Debug HTML saved to: debug_" + channelUsername + ".html");
+        } catch (Exception e) {
+            System.out.println("Could not save debug HTML: " + e.getMessage());
+        }
+        
         // ============ FIND ALL POST LINKS ============
+        // Try multiple patterns
         Pattern allLinksPattern = Pattern.compile(
             "<a class=\"tgme_widget_message_date\" href=\"/([^/]+)/(\\d+)\">"
         );
