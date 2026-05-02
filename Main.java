@@ -12,7 +12,7 @@ public class Main {
     private static final long MAX_DOWNLOAD_SIZE = 50 * 1024 * 1024;
     
     public static void main(String[] args) throws Exception {
-        System.out.println("=== Telegram Channel Archiver v4 ===");
+        System.out.println("=== Telegram Channel Archiver v5 ===");
         
         String channelUsername = System.getenv("CHANNEL_USERNAME");
         String postCountStr = System.getenv("POST_COUNT");
@@ -45,7 +45,6 @@ public class Main {
         if (subDirs != null) {
             for (File subDir : subDirs) {
                 String dirName = subDir.getName();
-                // Extract post ID from folder name: YYYY-MM-DD_ID or post_ID
                 Pattern dirIdPattern = Pattern.compile("_(\\d+)$");
                 Matcher dirIdMatcher = dirIdPattern.matcher(dirName);
                 if (dirIdMatcher.find()) {
@@ -73,12 +72,14 @@ public class Main {
                         for (File mf : mediaFiles) {
                             pd.files.add(mf.getName());
                             String name = mf.getName().toLowerCase();
-                            if (name.contains("photo") || name.endsWith(".jpg") || name.endsWith(".png") || name.endsWith(".jpeg") || name.endsWith(".webp"))
+                            if (name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".png") || 
+                                name.endsWith(".webp") || name.endsWith(".gif") || name.endsWith(".bmp")) {
                                 pd.hasPhoto = true;
-                            else if (name.contains("video") || name.endsWith(".mp4"))
+                            } else if (name.endsWith(".mp4") || name.endsWith(".webm") || name.endsWith(".ogv") || name.endsWith(".mov")) {
                                 pd.hasVideo = true;
-                            else
+                            } else {
                                 pd.hasDocument = true;
+                            }
                         }
                     }
                     
@@ -99,8 +100,9 @@ public class Main {
         
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(url))
-            .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+            .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
             .header("Accept", "text/html,application/xhtml+xml")
+            .header("Accept-Language", "en-US,en;q=0.9")
             .GET()
             .build();
         
@@ -109,8 +111,7 @@ public class Main {
         String html = response.body();
         System.out.println("HTML size: " + html.length() + " bytes");
         
-        // ============ FIND ALL MESSAGE LINKS ============
-        // Direct pattern for message links in t.me/s/
+        // ============ FIND ALL POST IDS AND LINKS ============
         List<String> postIds = new ArrayList<>();
         List<String> postLinks = new ArrayList<>();
         
@@ -120,10 +121,11 @@ public class Main {
         );
         Matcher m1 = linkPattern1.matcher(html);
         while (m1.find()) {
+            String ch = m1.group(1);
             String id = m1.group(2);
             if (!postIds.contains(id)) {
                 postIds.add(id);
-                postLinks.add("https://t.me/" + m1.group(1) + "/" + id);
+                postLinks.add("https://t.me/" + ch + "/" + id);
             }
         }
         
@@ -133,10 +135,25 @@ public class Main {
         );
         Matcher m2 = linkPattern2.matcher(html);
         while (m2.find()) {
+            String ch = m2.group(1);
             String id = m2.group(2);
             if (!postIds.contains(id)) {
                 postIds.add(id);
-                postLinks.add("https://t.me/" + m2.group(1) + "/" + id);
+                postLinks.add("https://t.me/" + ch + "/" + id);
+            }
+        }
+        
+        // Pattern 3: /channelName/12345 in any href
+        Pattern linkPattern3 = Pattern.compile(
+            "href=\"/([^/\"]+)/(\\d+)\""
+        );
+        Matcher m3 = linkPattern3.matcher(html);
+        while (m3.find()) {
+            String ch = m3.group(1);
+            String id = m3.group(2);
+            if (ch.equals(channelUsername) && !postIds.contains(id)) {
+                postIds.add(id);
+                postLinks.add("https://t.me/" + ch + "/" + id);
             }
         }
         
@@ -145,9 +162,22 @@ public class Main {
         if (postIds.isEmpty()) {
             // Save debug HTML
             FileWriter debugFw = new FileWriter("debug_" + channelUsername + ".html");
-            debugFw.write(html.substring(0, Math.min(50000, html.length())));
+            debugFw.write(html.substring(0, Math.min(100000, html.length())));
             debugFw.close();
-            System.out.println("DEBUG: No links found! Saved first 50KB to debug_" + channelUsername + ".html");
+            System.out.println("DEBUG: No links found! Saved first 100KB to debug_" + channelUsername + ".html");
+            System.out.println("Looking for any href patterns in HTML...");
+            
+            // Print first 20 hrefs for debugging
+            Pattern anyHref = Pattern.compile("href=\"([^\"]+)\"");
+            Matcher hrefMatcher = anyHref.matcher(html);
+            int hrefCount = 0;
+            while (hrefMatcher.find() && hrefCount < 20) {
+                String href = hrefMatcher.group(1);
+                if (href.contains("/") && !href.startsWith("#") && !href.startsWith("http")) {
+                    System.out.println("  href: " + href);
+                    hrefCount++;
+                }
+            }
         }
         
         // ============ PROCESS EACH POST ============
@@ -158,20 +188,28 @@ public class Main {
             String postLink = postLinks.get(i);
             
             // Extract post block from HTML
-            String blockPattern = "data-post=\"" + channelUsername + "/" + postId + "\"";
-            int blockStart = html.indexOf(blockPattern);
+            String blockSearch1 = "data-post=\"" + channelUsername + "/" + postId + "\"";
+            String blockSearch2 = "/" + channelUsername + "/" + postId;
+            
+            int blockStart = html.indexOf(blockSearch1);
             if (blockStart == -1) {
-                // Try alternative: find by message ID in link
-                String linkSearch = "/" + channelUsername + "/" + postId;
-                blockStart = html.indexOf(linkSearch);
-                if (blockStart > 200) blockStart -= 200;
+                blockStart = html.indexOf(blockSearch2);
+                if (blockStart > 300) blockStart -= 300;
                 else blockStart = 0;
             }
+            if (blockStart < 0) blockStart = 0;
             
             int blockEnd = html.indexOf("<div class=\"tgme_widget_message_wrap", blockStart + 100);
-            if (blockEnd == -1) blockEnd = html.length();
+            if (blockEnd == -1) {
+                blockEnd = html.indexOf("<div class=\"tgme_widget_message", blockStart + 100);
+            }
+            if (blockEnd == -1) {
+                blockEnd = html.indexOf(blockSearch1, blockStart + 10);
+                if (blockEnd == -1) blockEnd = html.indexOf(blockSearch2, blockStart + 10);
+            }
+            if (blockEnd == -1) blockEnd = Math.min(blockStart + 10000, html.length());
             
-            String block = html.substring(Math.max(0, blockStart), Math.min(blockEnd, html.length()));
+            String block = html.substring(blockStart, Math.min(blockEnd, html.length()));
             
             // Extract data
             String dateStr = extractDate(block);
@@ -179,6 +217,7 @@ public class Main {
             String photoUrl = extractPhotoUrl(block);
             String videoUrl = extractVideoUrl(block);
             String documentUrl = extractDocumentUrl(block);
+            String documentName = extractDocumentName(block);
             
             // ============ CREATE/UPDATE POST DIRECTORY ============
             String folderName;
@@ -194,69 +233,90 @@ public class Main {
             
             processed++;
             
-            System.out.println("\n[" + processed + "/" + Math.min(postIds.size(), maxPosts) + "] ID:" + postId + 
-                (photoUrl != null ? " [PHOTO]" : "") + 
-                (videoUrl != null ? " [VIDEO]" : "") + 
-                (documentUrl != null ? " [FILE]" : ""));
+            System.out.print("[" + processed + "/" + Math.min(postIds.size(), maxPosts) + "] ID:" + postId);
+            if (photoUrl != null) System.out.print(" [PHOTO]");
+            if (videoUrl != null) System.out.print(" [VIDEO]");
+            if (documentUrl != null) {
+                System.out.print(" [FILE");
+                if (documentName != null) System.out.print(":" + documentName);
+                System.out.print("]");
+            }
+            if (!text.isEmpty()) {
+                System.out.print(" - " + text.substring(0, Math.min(50, text.length())).replace("\n", " "));
+            }
+            System.out.println();
             
-            // Check if post.txt already exists and has same content
-            File existingPostTxt = new File(postDir, "post.txt");
-            boolean needUpdate = true;
-            if (existingPostTxt.exists()) {
-                String oldContent = new String(Files.readAllBytes(existingPostTxt.toPath()));
-                if (oldContent.contains("Post ID: " + postId) && oldContent.contains(text.substring(0, Math.min(50, text.length())))) {
-                    needUpdate = false;
-                    System.out.println("  Post already up-to-date, skipping text update");
-                }
+            // ============ SAVE POST.TXT ============
+            StringBuilder postTxt = new StringBuilder();
+            postTxt.append("Channel: @").append(channelUsername).append("\n");
+            postTxt.append("Post ID: ").append(postId).append("\n");
+            postTxt.append("Date: ").append(dateStr != null ? dateStr : "N/A").append("\n");
+            postTxt.append("Link: ").append(postLink).append("\n");
+            postTxt.append("Archived: ").append(LocalDateTime.now().format(
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+            )).append("\n");
+            postTxt.append("========================================\n\n");
+            if (!text.isEmpty()) {
+                postTxt.append(text).append("\n");
             }
             
-            // Save post.txt only if needed
-            if (needUpdate) {
-                StringBuilder postTxt = new StringBuilder();
-                postTxt.append("Channel: @").append(channelUsername).append("\n");
-                postTxt.append("Post ID: ").append(postId).append("\n");
-                postTxt.append("Date: ").append(dateStr != null ? dateStr : "N/A").append("\n");
-                postTxt.append("Link: ").append(postLink).append("\n");
-                postTxt.append("Archived: ").append(LocalDateTime.now().format(
-                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                )).append("\n");
-                postTxt.append("========================================\n\n");
-                if (!text.isEmpty()) postTxt.append(text).append("\n");
-                
-                FileWriter fw = new FileWriter(postDir + "/post.txt");
-                fw.write(postTxt.toString());
-                fw.close();
-            }
+            FileWriter fw = new FileWriter(postDir + "/post.txt");
+            fw.write(postTxt.toString());
+            fw.close();
             
-            // Download media (always try - will skip if already exists with same size)
+            // ============ DOWNLOAD MEDIA ============
             List<String> downloadedFiles = new ArrayList<>();
             
             if (photoUrl != null) {
-                String saved = downloadFile(client, photoUrl, postDir, "photo");
-                if (saved != null) downloadedFiles.add(saved);
-            }
-            if (videoUrl != null) {
-                String saved = downloadFile(client, videoUrl, postDir, "video");
-                if (saved != null) downloadedFiles.add(saved);
-            }
-            if (documentUrl != null) {
-                String saved = downloadFile(client, documentUrl, postDir, "file");
+                String saved = downloadFile(client, photoUrl, postDir, "photo", null);
                 if (saved != null) downloadedFiles.add(saved);
             }
             
-            // Update PostData in map
+            if (videoUrl != null) {
+                String saved = downloadFile(client, videoUrl, postDir, "video", null);
+                if (saved != null) downloadedFiles.add(saved);
+            }
+            
+            if (documentUrl != null) {
+                String saved = downloadFile(client, documentUrl, postDir, "file", documentName);
+                if (saved != null) downloadedFiles.add(saved);
+            }
+            
+            // ============ STORE POST DATA ============
             PostData pd = existingPostsMap.getOrDefault(postId, new PostData());
             pd.postId = postId;
             pd.folderName = folderName;
             pd.dateStr = dateStr;
             pd.text = text.length() > 150 ? text.substring(0, 150) + "..." : text;
-            pd.hasPhoto = photoUrl != null || pd.hasPhoto;
-            pd.hasVideo = videoUrl != null || pd.hasVideo;
-            pd.hasDocument = documentUrl != null || pd.hasDocument;
             
+            if (photoUrl != null) pd.hasPhoto = true;
+            if (videoUrl != null) pd.hasVideo = true;
+            if (documentUrl != null) pd.hasDocument = true;
+            
+            // Add new files
             if (!downloadedFiles.isEmpty()) {
                 Set<String> allFiles = new LinkedHashSet<>(pd.files);
                 allFiles.addAll(downloadedFiles);
+                pd.files = new ArrayList<>(allFiles);
+            }
+            
+            // Also scan folder for any existing files we might have missed
+            File currentPostDir = new File(postDir);
+            File[] allFilesInDir = currentPostDir.listFiles((f) -> !f.getName().equals("post.txt"));
+            if (allFilesInDir != null) {
+                Set<String> allFiles = new LinkedHashSet<>(pd.files);
+                for (File f : allFilesInDir) {
+                    allFiles.add(f.getName());
+                    String name = f.getName().toLowerCase();
+                    if (name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".png") || 
+                        name.endsWith(".webp") || name.endsWith(".gif") || name.endsWith(".bmp")) {
+                        pd.hasPhoto = true;
+                    } else if (name.endsWith(".mp4") || name.endsWith(".webm") || name.endsWith(".ogv") || name.endsWith(".mov")) {
+                        pd.hasVideo = true;
+                    } else if (!name.equals("post.txt")) {
+                        pd.hasDocument = true;
+                    }
+                }
                 pd.files = new ArrayList<>(allFiles);
             }
             
@@ -270,18 +330,19 @@ public class Main {
             catch (Exception e) { return 0; }
         });
         
-        StringBuilder html_content = buildIndexHtml(channelUsername, allPosts);
+        StringBuilder indexHtml = buildIndexHtml(channelUsername, allPosts);
         
         FileWriter idxFw = new FileWriter(indexPath);
-        idxFw.write(html_content.toString());
+        idxFw.write(indexHtml.toString());
         idxFw.close();
         
         // ============ SUMMARY ============
         System.out.println("\n==========================================");
         System.out.println("Channel: @" + channelUsername);
-        System.out.println("Posts online: " + postIds.size());
-        System.out.println("Processed: " + processed);
-        System.out.println("Total archived: " + allPosts.size());
+        System.out.println("Posts found online: " + postIds.size());
+        System.out.println("Posts processed this run: " + processed);
+        System.out.println("Total posts in archive: " + allPosts.size());
+        System.out.println("Total files in archive: " + allPosts.stream().mapToInt(p -> p.files.size()).sum());
         System.out.println("==========================================");
     }
     
@@ -307,11 +368,11 @@ public class Main {
         h.append("<style>\n");
         h.append("*{margin:0;padding:0;box-sizing:border-box}\n");
         h.append("body{font-family:Tahoma,sans-serif;max-width:750px;margin:0 auto;padding:12px;background:#e8eaed}\n");
-        h.append(".header{background:linear-gradient(135deg,#2a9d8f,#1d7a6e);color:white;padding:22px;border-radius:14px;text-align:center;margin-bottom:18px}\n");
+        h.append(".header{background:linear-gradient(135deg,#2a9d8f,#1d7a6e);color:white;padding:22px;border-radius:14px;text-align:center;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,0.1)}\n");
         h.append(".header h1{font-size:20px}\n");
-        h.append(".header .stats{font-size:12px;opacity:.9;margin-top:4px}\n");
-        h.append(".post-card{background:white;border-radius:10px;padding:14px;margin-bottom:8px;box-shadow:0 1px 2px rgba(0,0,0,.06);display:flex;gap:12px;align-items:flex-start;border-right:3px solid transparent;transition:.2s}\n");
-        h.append(".post-card:hover{border-right-color:#2a9d8f;box-shadow:0 3px 10px rgba(0,0,0,.1)}\n");
+        h.append(".header .stats{font-size:12px;opacity:0.9;margin-top:4px}\n");
+        h.append(".post-card{background:white;border-radius:10px;padding:14px;margin-bottom:8px;box-shadow:0 1px 2px rgba(0,0,0,0.06);display:flex;gap:12px;align-items:flex-start;border-right:3px solid transparent;transition:0.2s}\n");
+        h.append(".post-card:hover{border-right-color:#2a9d8f;box-shadow:0 3px 10px rgba(0,0,0,0.1)}\n");
         h.append(".post-icon{font-size:28px;min-width:36px;text-align:center;line-height:1}\n");
         h.append(".post-info{flex:1;min-width:0}\n");
         h.append(".post-date{font-size:10px;color:#999;margin-bottom:4px;font-weight:bold}\n");
@@ -340,8 +401,9 @@ public class Main {
                 h.append("<div class=\"post-card\" data-post-id=\"").append(pd.postId).append("\">\n");
                 
                 String icon = "📝";
-                if (pd.hasPhoto) icon = "🖼️";
-                else if (pd.hasVideo) icon = "🎬";
+                if (pd.hasPhoto && pd.hasVideo) icon = "🎬";
+                else if (pd.hasPhoto) icon = "🖼️";
+                else if (pd.hasVideo) icon = "🎥";
                 else if (pd.hasDocument) icon = "📎";
                 
                 h.append("<div class=\"post-icon\">").append(icon).append("</div>\n");
@@ -431,19 +493,44 @@ public class Main {
         return null;
     }
     
+    private static String extractDocumentName(String block) {
+        Pattern p = Pattern.compile(
+            "<span\\s+class=\"tgme_widget_message_document_title[^\"]*\"[^>]*>(.*?)</span>"
+        );
+        Matcher m = p.matcher(block);
+        if (m.find()) return m.group(1).trim();
+        return null;
+    }
+    
     // ==================== DOWNLOAD ====================
     
-    private static String downloadFile(HttpClient client, String fileUrl, String destDir, String prefix) {
+    private static String downloadFile(HttpClient client, String fileUrl, String destDir, String prefix, String originalFileName) {
         try {
             String cleanUrl = fileUrl.replace("https://t.mehttps://t.me/", "https://t.me/");
             
-            // Check if file with similar name already exists
+            System.out.println("    Downloading: " + cleanUrl);
+            
+            // Check if file already exists in this directory
             File dir = new File(destDir);
-            File[] existing = dir.listFiles((f) -> f.getName().startsWith(prefix + "_"));
+            File[] existing = dir.listFiles((f) -> !f.getName().equals("post.txt"));
+            
+            if (existing != null && existing.length > 0) {
+                boolean hasValidFile = false;
+                for (File f : existing) {
+                    if (f.length() > 0) {
+                        hasValidFile = true;
+                        break;
+                    }
+                }
+                if (hasValidFile) {
+                    System.out.println("    Already have file(s), skipping download");
+                    return existing[0].getName();
+                }
+            }
             
             HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(cleanUrl))
-                .header("User-Agent", "Mozilla/5.0")
+                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
                 .header("Accept", "*/*")
                 .timeout(java.time.Duration.ofMinutes(5))
                 .GET()
@@ -452,10 +539,13 @@ public class Main {
             HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
             
             int statusCode = response.statusCode();
+            
+            // Follow redirects manually if needed
             if (statusCode == 301 || statusCode == 302 || statusCode == 307 || statusCode == 308) {
                 String redirectUrl = response.headers().firstValue("Location").orElse(null);
                 if (redirectUrl != null) {
                     if (!redirectUrl.startsWith("http")) redirectUrl = "https://t.me" + redirectUrl;
+                    System.out.println("    Following redirect: " + redirectUrl);
                     request = HttpRequest.newBuilder()
                         .uri(URI.create(redirectUrl))
                         .header("User-Agent", "Mozilla/5.0")
@@ -469,47 +559,64 @@ public class Main {
             }
             
             if (statusCode != 200) {
-                System.out.println("    HTTP " + statusCode);
+                System.out.println("    HTTP " + statusCode + " - skipping");
                 return null;
             }
             
-            String contentType = response.headers().firstValue("Content-Type").orElse("application/octet-stream");
-            String contentLength = response.headers().firstValue("Content-Length").orElse("-1");
-            long size = -1;
-            try { size = Long.parseLong(contentLength); } catch (Exception e) {}
+            // ============ DETERMINE FILENAME ============
+            String fileName;
             
-            if (size > MAX_DOWNLOAD_SIZE) {
-                System.out.println("    Too large: " + size);
-                return null;
+            // Priority 1: Use original filename from Telegram document title
+            if (originalFileName != null && !originalFileName.isEmpty()) {
+                fileName = originalFileName.replaceAll("[^a-zA-Z0-9آ-ی_\\-.]", "_");
+                // Remove double underscores
+                fileName = fileName.replaceAll("_+", "_");
+                // If no extension, try to get from URL
+                if (!fileName.contains(".")) {
+                    String extFromUrl = getExtensionFromUrl(cleanUrl);
+                    if (!extFromUrl.isEmpty()) {
+                        fileName += extFromUrl;
+                    }
+                }
+            } else {
+                // Priority 2: Use filename from URL
+                String urlFileName = getFileNameFromUrl(cleanUrl);
+                if (urlFileName != null && !urlFileName.isEmpty()) {
+                    fileName = urlFileName;
+                } else {
+                    // Priority 3: Generate with prefix and timestamp
+                    String contentType = response.headers().firstValue("Content-Type").orElse("");
+                    String ext = getExtension(contentType, cleanUrl);
+                    fileName = prefix + "_" + System.currentTimeMillis() + ext;
+                }
             }
             
-            String ext = getExtension(contentType, cleanUrl);
+            System.out.println("    Filename: " + fileName);
             
-            // Check if we already have this file (by same prefix and content type)
-            if (existing != null && existing.length > 0) {
-                System.out.println("    File already exists with this prefix, skipping download");
-                return existing[0].getName(); // return existing filename
-            }
-            
-            String fileName = prefix + "_" + System.currentTimeMillis() + ext;
             Path filePath = Paths.get(destDir, fileName);
             
+            // Download file
             try (InputStream is = response.body()) {
                 Files.copy(is, filePath, StandardCopyOption.REPLACE_EXISTING);
             }
             
             long actualSize = Files.size(filePath);
+            
+            // Check if empty
             if (actualSize == 0) {
                 Files.delete(filePath);
+                System.out.println("    Empty file, deleted");
                 return null;
             }
             
+            // Check if too large
             if (actualSize > MAX_DOWNLOAD_SIZE) {
                 Files.delete(filePath);
+                System.out.println("    Too large (" + actualSize + " bytes), deleted");
                 return null;
             }
             
-            System.out.println("    Saved: " + fileName + " (" + actualSize + " bytes)");
+            System.out.println("    Saved: " + fileName + " (" + formatSize(actualSize) + ")");
             return fileName;
             
         } catch (Exception e) {
@@ -518,7 +625,21 @@ public class Main {
         }
     }
     
-    private static String getExtension(String contentType, String url) {
+    private static String getFileNameFromUrl(String url) {
+        try {
+            String path = new URI(url).getPath();
+            if (path.contains("?")) path = path.substring(0, path.indexOf("?"));
+            String fileName = Paths.get(path).getFileName().toString();
+            if (fileName != null && !fileName.isEmpty() && fileName.length() > 3) {
+                // Clean filename
+                fileName = fileName.replaceAll("[^a-zA-Z0-9آ-ی_\\-.]", "_");
+                return fileName;
+            }
+        } catch (Exception ignored) {}
+        return null;
+    }
+    
+    private static String getExtensionFromUrl(String url) {
         try {
             String path = new URI(url).getPath();
             if (path.contains("?")) path = path.substring(0, path.indexOf("?"));
@@ -529,26 +650,95 @@ public class Main {
                 if (ext.length() >= 2 && ext.length() <= 10) return ext.toLowerCase();
             }
         } catch (Exception ignored) {}
+        return "";
+    }
+    
+    private static String getExtension(String contentType, String url) {
+        // First try to get extension from URL
+        String urlExt = getExtensionFromUrl(url);
+        if (!urlExt.isEmpty()) return urlExt;
         
         if (contentType == null) return "";
+        
         String ct = contentType.toLowerCase();
         
+        // VPN config files
+        if (ct.contains("npvt")) return ".npvt";
+        if (ct.contains("ovpn") || ct.contains("openvpn")) return ".ovpn";
+        if (ct.contains("conf") || ct.contains("wireguard")) return ".conf";
+        if (ct.contains("v2ray") || ct.contains("vmess")) return ".json";
+        if (ct.contains("sing-box") || ct.contains("singbox")) return ".json";
+        if (ct.contains("clash")) return ".yaml";
+        
+        // Images
         if (ct.contains("jpeg") || ct.contains("jpg")) return ".jpg";
         if (ct.contains("png")) return ".png";
         if (ct.contains("gif")) return ".gif";
         if (ct.contains("webp")) return ".webp";
-        if (ct.contains("mp4") || ct.contains("video/")) return ".mp4";
-        if (ct.contains("mp3") || ct.contains("audio/")) return ".mp3";
+        if (ct.contains("svg")) return ".svg";
+        if (ct.contains("bmp")) return ".bmp";
+        if (ct.contains("ico") || ct.contains("icon")) return ".ico";
+        
+        // Video
+        if (ct.contains("mp4") || ct.contains("video/mp4")) return ".mp4";
+        if (ct.contains("webm")) return ".webm";
+        if (ct.contains("ogg") || ct.contains("ogv")) return ".ogv";
+        if (ct.contains("video/")) return ".mp4";
+        
+        // Audio
+        if (ct.contains("mp3") || ct.contains("mpeg")) return ".mp3";
+        if (ct.contains("wav")) return ".wav";
+        if (ct.contains("flac")) return ".flac";
+        if (ct.contains("aac")) return ".aac";
+        if (ct.contains("audio/")) return ".mp3";
+        
+        // Documents
         if (ct.contains("pdf")) return ".pdf";
         if (ct.contains("zip")) return ".zip";
         if (ct.contains("rar")) return ".rar";
+        if (ct.contains("7z") || ct.contains("7-zip")) return ".7z";
+        if (ct.contains("tar")) return ".tar";
+        if (ct.contains("gz") || ct.contains("gzip")) return ".gz";
+        
+        // Text/Config
         if (ct.contains("json")) return ".json";
         if (ct.contains("xml")) return ".xml";
+        if (ct.contains("yaml") || ct.contains("yml")) return ".yaml";
+        if (ct.contains("toml")) return ".toml";
+        if (ct.contains("ini")) return ".ini";
+        if (ct.contains("cfg")) return ".cfg";
+        if (ct.contains("html")) return ".html";
+        if (ct.contains("css")) return ".css";
+        if (ct.contains("javascript") || ct.contains("ecmascript")) return ".js";
         if (ct.contains("text/plain")) return ".txt";
         if (ct.contains("text/")) return ".txt";
-        if (ct.contains("npvt")) return ".npvt";
+        
+        // Office
+        if (ct.contains("word") || ct.contains("docx")) return ".docx";
+        if (ct.contains("excel") || ct.contains("xlsx") || ct.contains("spreadsheet")) return ".xlsx";
+        if (ct.contains("powerpoint") || ct.contains("pptx") || ct.contains("presentation")) return ".pptx";
+        
+        // Open Document
+        if (ct.contains("opendocument.text")) return ".odt";
+        if (ct.contains("opendocument.spreadsheet")) return ".ods";
+        
+        // Executables
+        if (ct.contains("exe") || ct.contains("x-msdownload")) return ".exe";
+        if (ct.contains("apk") || ct.contains("android")) return ".apk";
+        if (ct.contains("dmg")) return ".dmg";
+        if (ct.contains("deb")) return ".deb";
+        
+        // Binary
+        if (ct.contains("octet-stream") || ct.contains("binary")) return ".bin";
         
         return "";
+    }
+    
+    private static String formatSize(long bytes) {
+        if (bytes < 1024) return bytes + " B";
+        if (bytes < 1024 * 1024) return String.format("%.1f KB", bytes / 1024.0);
+        if (bytes < 1024 * 1024 * 1024) return String.format("%.1f MB", bytes / (1024.0 * 1024));
+        return String.format("%.1f GB", bytes / (1024.0 * 1024 * 1024));
     }
     
     // ==================== UTILITY ====================
