@@ -116,4 +116,53 @@ public class Main {
         if (subs == null) return map;
         
         for (File sub : subs) {
-            String
+            String name = sub.getName();
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("_(\\d+)$").matcher(name);
+            if (m.find()) {
+                String id = m.group(1);
+                PostData pd = new PostData();
+                pd.postId = id;
+                pd.folderName = name;
+                
+                File txt = new File(sub, "post.txt");
+                if (txt.exists()) {
+                    try {
+                        String content = new String(Files.readAllBytes(txt.toPath()));
+                        java.util.regex.Matcher dm = java.util.regex.Pattern.compile("Date: ([^\n]+)").matcher(content);
+                        if (dm.find()) pd.dateStr = dm.group(1).trim();
+                        String[] parts = content.split("====+\n+", 2);
+                        if (parts.length > 1) pd.text = parts[1].trim();
+                    } catch (Exception e) {}
+                }
+                
+                File[] files = sub.listFiles(f -> !f.getName().equals("post.txt"));
+                if (files != null) {
+                    for (File f : files) {
+                        pd.files.add(f.getName());
+                        String n = f.getName().toLowerCase();
+                        if (n.endsWith(".jpg") || n.endsWith(".png") || n.endsWith(".webp")) pd.hasPhoto = true;
+                        else if (n.endsWith(".mp4")) pd.hasVideo = true;
+                        else pd.hasDocument = true;
+                    }
+                }
+                map.put(id, pd);
+            }
+        }
+        return map;
+    }
+    
+    private static void savePostTxt(String dir, String channel, String postId, String dateStr, String text) throws Exception {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Channel: @").append(channel).append("\n");
+        sb.append("Post ID: ").append(postId).append("\n");
+        sb.append("Date: ").append(dateStr != null ? dateStr : "N/A").append("\n");
+        sb.append("Link: https://t.me/").append(channel).append("/").append(postId).append("\n");
+        sb.append("Archived: ").append(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))).append("\n");
+        sb.append("========================================\n\n");
+        if (!text.isEmpty()) sb.append(text).append("\n");
+        
+        FileWriter fw = new FileWriter(dir + "/post.txt");
+        fw.write(sb.toString());
+        fw.close();
+    }
+}
