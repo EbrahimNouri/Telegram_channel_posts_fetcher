@@ -635,6 +635,8 @@ public class Main {
     // Executables
     if (ct.contains("exe") || ct.contains("x-msdownload")) return ".exe";
     if (ct.contains("apk") || ct.contains("android")) return ".apk";
+    if (ct.contains("npvt")) return ".npvt";
+
     
     // Archives / Binary
     if (ct.contains("octet-stream") || ct.contains("binary")) return ".bin";
