@@ -36,11 +36,16 @@ public class FileDownloader {
             
             HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
             
+            // DEBUG: Check Content-Type
+            String contentType = response.headers().firstValue("Content-Type").orElse("unknown");
+            System.out.println("    Content-Type: " + contentType);
+            
             int statusCode = response.statusCode();
             if (statusCode == 301 || statusCode == 302 || statusCode == 307 || statusCode == 308) {
                 String redirectUrl = response.headers().firstValue("Location").orElse(null);
                 if (redirectUrl != null) {
                     if (!redirectUrl.startsWith("http")) redirectUrl = "https://t.me" + redirectUrl;
+                    System.out.println("    Redirect to: " + redirectUrl);
                     request = HttpRequest.newBuilder()
                         .uri(URI.create(redirectUrl))
                         .header("User-Agent", "Mozilla/5.0")
@@ -49,6 +54,8 @@ public class FileDownloader {
                         .build();
                     response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
                     statusCode = response.statusCode();
+                    contentType = response.headers().firstValue("Content-Type").orElse("unknown");
+                    System.out.println("    Redirect Content-Type: " + contentType);
                 }
             }
             
@@ -61,17 +68,12 @@ public class FileDownloader {
             String fileName;
             
             if (originalFileName != null && !originalFileName.trim().isEmpty()) {
-                // Use original name from Telegram
                 fileName = originalFileName.trim();
-                
-                // Replace characters illegal in filesystem
                 fileName = fileName.replaceAll("[\\\\/:*?\"<>|]", "_");
-                // Replace multiple spaces with one underscore
                 fileName = fileName.replaceAll("\\s+", "_");
-                // Remove leading/trailing dots and spaces
                 fileName = fileName.replaceAll("^[.\\s]+", "").replaceAll("[.\\s]+$", "");
                 
-                // Check if filename already has a valid extension
+                // Check extension
                 String existingExt = "";
                 if (fileName.contains(".")) {
                     int lastDot = fileName.lastIndexOf(".");
@@ -82,14 +84,11 @@ public class FileDownloader {
                 boolean hasValidExt = isValidExtension(existingExt);
                 
                 if (hasValidExt) {
-                    // HAS valid extension -> strip everything after extension
                     String baseName = fileName.substring(0, fileName.lastIndexOf("."));
                     fileName = baseName + existingExt;
                 } else {
-                    // NO valid extension -> try to add one from URL or content-type
                     String newExt = getExtensionFromUrl(cleanUrl);
                     if (newExt.isEmpty()) {
-                        String contentType = response.headers().firstValue("Content-Type").orElse("");
                         newExt = getExtensionSimple(contentType, cleanUrl);
                     }
                     if (!newExt.isEmpty() && !fileName.toLowerCase().endsWith(newExt.toLowerCase())) {
@@ -97,27 +96,36 @@ public class FileDownloader {
                     }
                 }
                 
+                // Strip size info
+                fileName = fileName.replaceAll("[._]\\d+\\.?\\d*\\s*[KkMmGg][Bb]$", "");
+                for (String ext : new String[]{".npvt", ".ovpn", ".conf", ".json", ".yaml", ".yml", 
+                                               ".jpg", ".jpeg", ".png", ".gif", ".webp", ".mp4", 
+                                               ".mp3", ".pdf", ".zip", ".rar", ".7z", ".txt", ".bin"}) {
+                    if (fileName.toLowerCase().contains(ext.toLowerCase())) {
+                        int pos = fileName.toLowerCase().indexOf(ext.toLowerCase());
+                        fileName = fileName.substring(0, pos + ext.length());
+                        break;
+                    }
+                }
+                
                 System.out.println("    Using Telegram name: " + fileName);
             } else {
-                // Fallback: generate filename
                 String urlName = getFileNameFromUrl(cleanUrl);
                 if (urlName != null && !urlName.isEmpty()) {
                     fileName = urlName;
                 } else {
-                    String contentType = response.headers().firstValue("Content-Type").orElse("");
                     String ext = getExtensionSimple(contentType, cleanUrl);
                     fileName = prefix + "_" + System.currentTimeMillis() + ext;
                 }
                 System.out.println("    Generated name: " + fileName);
             }
             
-            // Final safety check
             if (fileName == null || fileName.isEmpty()) {
                 fileName = prefix + "_" + System.currentTimeMillis() + ".bin";
             }
-           fileName = fileName.contains(".npvt") ? fileName.split("\\.npvt")[0] + ".npvt" : fileName;            Path filePath = Paths.get(destDir, fileName);
             
-            // If file exists with same name, add number
+            Path filePath = Paths.get(destDir, fileName);
+            
             int counter = 1;
             String baseName = fileName;
             String ext = "";
@@ -132,7 +140,14 @@ public class FileDownloader {
                 counter++;
             }
             
-            // Download the file
+            // If Content-Type is text/html, we might have wrong URL
+            if (contentType.contains("text/html") || contentType.contains("text/html")) {
+                System.out.println("    WARNING: Got HTML instead of file! URL might be wrong.");
+                System.out.println("    URL used: " + cleanUrl);
+                // Don't save HTML as npvt file
+                return null;
+            }
+            
             try (InputStream is = response.body()) {
                 Files.copy(is, filePath, StandardCopyOption.REPLACE_EXISTING);
             }
@@ -158,12 +173,8 @@ public class FileDownloader {
         }
     }
     
-    // ==================== HELPER METHODS ====================
-    
     private static boolean isValidExtension(String ext) {
         if (ext == null || ext.isEmpty()) return false;
-        
-        // VPN config files
         if (ext.equals(".npvt")) return true;
         if (ext.equals(".ovpn")) return true;
         if (ext.equals(".conf")) return true;
@@ -172,8 +183,6 @@ public class FileDownloader {
         if (ext.equals(".toml")) return true;
         if (ext.equals(".ini")) return true;
         if (ext.equals(".cfg")) return true;
-        
-        // Images
         if (ext.equals(".jpg") || ext.equals(".jpeg")) return true;
         if (ext.equals(".png")) return true;
         if (ext.equals(".gif")) return true;
@@ -181,62 +190,45 @@ public class FileDownloader {
         if (ext.equals(".svg")) return true;
         if (ext.equals(".bmp")) return true;
         if (ext.equals(".ico")) return true;
-        
-        // Video
         if (ext.equals(".mp4")) return true;
         if (ext.equals(".webm")) return true;
         if (ext.equals(".ogv")) return true;
         if (ext.equals(".mov")) return true;
         if (ext.equals(".avi")) return true;
         if (ext.equals(".mkv")) return true;
-        
-        // Audio
         if (ext.equals(".mp3")) return true;
         if (ext.equals(".wav")) return true;
         if (ext.equals(".flac")) return true;
         if (ext.equals(".aac")) return true;
         if (ext.equals(".ogg")) return true;
-        
-        // Documents
         if (ext.equals(".pdf")) return true;
         if (ext.equals(".zip")) return true;
         if (ext.equals(".rar")) return true;
         if (ext.equals(".7z")) return true;
         if (ext.equals(".tar")) return true;
         if (ext.equals(".gz")) return true;
-        
-        // Text
         if (ext.equals(".txt")) return true;
         if (ext.equals(".html") || ext.equals(".htm")) return true;
         if (ext.equals(".css")) return true;
         if (ext.equals(".js")) return true;
         if (ext.equals(".xml")) return true;
         if (ext.equals(".csv")) return true;
-        
-        // Office
         if (ext.equals(".docx") || ext.equals(".doc")) return true;
         if (ext.equals(".xlsx") || ext.equals(".xls")) return true;
         if (ext.equals(".pptx") || ext.equals(".ppt")) return true;
         if (ext.equals(".odt")) return true;
         if (ext.equals(".ods")) return true;
-        
-        // Executables
         if (ext.equals(".exe")) return true;
         if (ext.equals(".apk")) return true;
         if (ext.equals(".dmg")) return true;
         if (ext.equals(".deb")) return true;
         if (ext.equals(".msi")) return true;
-        
-        // Other
         if (ext.equals(".bin")) return true;
         if (ext.equals(".dat")) return true;
         if (ext.equals(".iso")) return true;
         if (ext.equals(".dll")) return true;
         if (ext.equals(".so")) return true;
-        
-        // If extension is 2-5 letters, probably valid
         if (ext.length() >= 2 && ext.length() <= 5) return true;
-        
         return false;
     }
     
@@ -255,22 +247,16 @@ public class FileDownloader {
     }
     
     private static String getExtensionSimple(String contentType, String url) {
-        // Try URL first
         String urlExt = getExtensionFromUrl(url);
         if (!urlExt.isEmpty()) return urlExt;
-        
         if (contentType == null) return "";
         String ct = contentType.toLowerCase();
-        
-        // VPN configs
         if (ct.contains("npvt")) return ".npvt";
         if (ct.contains("ovpn") || ct.contains("openvpn")) return ".ovpn";
         if (ct.contains("conf") || ct.contains("wireguard")) return ".conf";
         if (ct.contains("v2ray") || ct.contains("vmess")) return ".json";
         if (ct.contains("sing-box") || ct.contains("singbox")) return ".json";
         if (ct.contains("clash")) return ".yaml";
-        
-        // Images
         if (ct.contains("jpeg") || ct.contains("jpg")) return ".jpg";
         if (ct.contains("png")) return ".png";
         if (ct.contains("gif")) return ".gif";
@@ -278,28 +264,20 @@ public class FileDownloader {
         if (ct.contains("svg")) return ".svg";
         if (ct.contains("bmp")) return ".bmp";
         if (ct.contains("ico") || ct.contains("icon")) return ".ico";
-        
-        // Video
         if (ct.contains("mp4") || ct.contains("video/mp4")) return ".mp4";
         if (ct.contains("webm")) return ".webm";
         if (ct.contains("video/")) return ".mp4";
-        
-        // Audio
         if (ct.contains("mp3") || ct.contains("mpeg")) return ".mp3";
         if (ct.contains("wav")) return ".wav";
         if (ct.contains("flac")) return ".flac";
         if (ct.contains("aac")) return ".aac";
         if (ct.contains("audio/")) return ".mp3";
-        
-        // Documents
         if (ct.contains("pdf")) return ".pdf";
         if (ct.contains("zip")) return ".zip";
         if (ct.contains("rar")) return ".rar";
         if (ct.contains("7z") || ct.contains("7-zip")) return ".7z";
         if (ct.contains("tar")) return ".tar";
         if (ct.contains("gz") || ct.contains("gzip")) return ".gz";
-        
-        // Text/Config
         if (ct.contains("json")) return ".json";
         if (ct.contains("xml")) return ".xml";
         if (ct.contains("yaml") || ct.contains("yml")) return ".yaml";
@@ -311,23 +289,16 @@ public class FileDownloader {
         if (ct.contains("javascript")) return ".js";
         if (ct.contains("text/plain")) return ".txt";
         if (ct.contains("text/")) return ".txt";
-        
-        // Office
         if (ct.contains("word") || ct.contains("docx")) return ".docx";
-        if (ct.contains("excel") || ct.contains("xlsx") || ct.contains("spreadsheet")) return ".xlsx";
-        if (ct.contains("powerpoint") || ct.contains("pptx") || ct.contains("presentation")) return ".pptx";
+        if (ct.contains("excel") || ct.contains("xlsx")) return ".xlsx";
+        if (ct.contains("powerpoint") || ct.contains("pptx")) return ".pptx";
         if (ct.contains("opendocument.text")) return ".odt";
         if (ct.contains("opendocument.spreadsheet")) return ".ods";
-        
-        // Executables
         if (ct.contains("exe") || ct.contains("x-msdownload")) return ".exe";
         if (ct.contains("apk") || ct.contains("android")) return ".apk";
         if (ct.contains("dmg")) return ".dmg";
         if (ct.contains("deb")) return ".deb";
-        
-        // Binary
         if (ct.contains("octet-stream") || ct.contains("binary")) return ".bin";
-        
         return "";
     }
     
