@@ -115,8 +115,7 @@ public class FileDownloader {
             if (fileName == null || fileName.isEmpty()) {
                 fileName = prefix + "_" + System.currentTimeMillis() + ".bin";
             }
-            
-            Path filePath = Paths.get(destDir, fileName);
+           fileName = fileName.contains(".npvt") ? fileName.split("\\.npvt")[0] + ".npvt" : fileName;            Path filePath = Paths.get(destDir, fileName);
             
             // If file exists with same name, add number
             int counter = 1;
