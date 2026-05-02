@@ -12,7 +12,7 @@ public class Main {
     private static final long MAX_DOWNLOAD_SIZE = 50 * 1024 * 1024; // 50MB
     
     public static void main(String[] args) throws Exception {
-        System.out.println("Starting Telegram channel archiver...");
+        System.out.println("=== Telegram Channel Archiver v2 ===");
         
         String channelUsername = System.getenv("CHANNEL_USERNAME");
         String postCountStr = System.getenv("POST_COUNT");
@@ -30,36 +30,81 @@ public class Main {
             }
         }
         
-        // ============ ساختار پوشه ============
-        // channels/
-        //   └── channelName/
-        //       └── YYYY-MM-DD_POSTID/
-        //           ├── post.txt
-        //           └── attached_files...
-        
         String channelDir = "channels/" + channelUsername;
         new File(channelDir).mkdirs();
         
-        // فایل ایندکس برای لیست همه پست‌ها
         String indexPath = channelDir + "/index.html";
         
         System.out.println("Channel: @" + channelUsername);
         System.out.println("Max posts: " + maxPosts);
-        System.out.println("Output: " + channelDir);
         
-        // Read existing index for duplicate detection
-        Set<String> existingPostIds = new HashSet<>();
+        // ============ LOAD EXISTING POST IDs ============
+        Set<String> existingPostIds = new LinkedHashSet<>();
+        List<PostData> existingPosts = new ArrayList<>();
+        
         File indexFile = new File(indexPath);
         if (indexFile.exists()) {
             String indexContent = new String(Files.readAllBytes(indexFile.toPath()));
-            Pattern idPattern = Pattern.compile("data-post-id=\"([^\"]+)\"");
-            Matcher idMatcher = idPattern.matcher(indexContent);
-            while (idMatcher.find()) {
-                existingPostIds.add(idMatcher.group(1));
+            
+            // Extract post cards with their IDs
+            Pattern cardPattern = Pattern.compile(
+                "data-post-id=\"(\\d+)\"[^>]*>.*?" +
+                "<div class=\"post-date\">([^<]*)</div>.*?" +
+                "<div class=\"post-text\">([^<]*)</div>",
+                Pattern.DOTALL
+            );
+            Matcher cardMatcher = cardPattern.matcher(indexContent);
+            while (cardMatcher.find()) {
+                String id = cardMatcher.group(1);
+                String date = cardMatcher.group(2);
+                String text = cardMatcher.group(3);
+                
+                existingPostIds.add(id);
+                
+                PostData pd = new PostData();
+                pd.postId = id;
+                pd.dateStr = date;
+                pd.text = htmlUnescape(text);
+                existingPosts.add(pd);
+            }
+            
+            // Also scan directories for posts not in index
+            File channelFolder = new File(channelDir);
+            File[] subDirs = channelFolder.listFiles(File::isDirectory);
+            if (subDirs != null) {
+                for (File subDir : subDirs) {
+                    String dirName = subDir.getName();
+                    Pattern dirIdPattern = Pattern.compile("_(\\d+)$");
+                    Matcher dirIdMatcher = dirIdPattern.matcher(dirName);
+                    if (dirIdMatcher.find()) {
+                        String id = dirIdMatcher.group(1);
+                        if (!existingPostIds.contains(id)) {
+                            existingPostIds.add(id);
+                            PostData pd = new PostData();
+                            pd.postId = id;
+                            pd.folderName = dirName;
+                            // Try to read post.txt
+                            File postTxtFile = new File(subDir, "post.txt");
+                            if (postTxtFile.exists()) {
+                                String content = new String(Files.readAllBytes(postTxtFile.toPath()));
+                                Pattern dateP = Pattern.compile("Date: ([^\n]+)");
+                                Matcher dateM = dateP.matcher(content);
+                                if (dateM.find()) pd.dateStr = dateM.group(1).trim();
+                                
+                                // Get text after ====
+                                String[] parts = content.split("====+\n+", 2);
+                                if (parts.length > 1) pd.text = parts[1].trim();
+                            }
+                            existingPosts.add(pd);
+                        }
+                    }
+                }
             }
         }
         
-        // Fetch Telegram page
+        System.out.println("Existing posts found: " + existingPostIds.size());
+        
+        // ============ FETCH TELEGRAM PAGE ============
         String url = "https://t.me/s/" + channelUsername;
         
         HttpClient client = HttpClient.newBuilder()
@@ -69,7 +114,9 @@ public class Main {
         
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(url))
-            .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+            .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+            .header("Accept", "text/html,application/xhtml+xml")
+            .header("Accept-Language", "en-US,en;q=0.9")
             .GET()
             .build();
         
@@ -78,27 +125,66 @@ public class Main {
         HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
         String html = response.body();
         
-        // Extract post blocks
-        Pattern postBlockPattern = Pattern.compile(
-            "<div class=\"tgme_widget_message_wrap[^\"]*\"[^>]*>(.*?)</div>\\s*</div>\\s*</div>\\s*</div>\\s*</div>",
+        System.out.println("HTML size: " + html.length() + " bytes");
+        
+        // ============ BETTER POST EXTRACTION ============
+        // Each post starts with: <div class="tgme_widget_message_wrap
+        // And has a message date link with post ID
+        
+        // Find ALL message containers first
+        Pattern messageContainerPattern = Pattern.compile(
+            "<div class=\"tgme_widget_message_wrap[^\"]*\"[^>]*>(.*?)</div>\\s*</div>\\s*</div>",
             Pattern.DOTALL
         );
         
-        Matcher blockMatcher = postBlockPattern.matcher(html);
+        // Also find all message date links to get post IDs
+        Pattern allLinksPattern = Pattern.compile(
+            "<a class=\"tgme_widget_message_date\" href=\"/([^/]+)/(\\d+)\">"
+        );
         
-        // Collect post data for index
-        List<PostData> posts = new ArrayList<>();
+        Matcher linkMatcher = allLinksPattern.matcher(html);
         
-        int count = 0;
-        int newCount = 0;
+        // Collect all post links first
+        List<String[]> allPostLinks = new ArrayList<>(); // [channel, id]
+        while (linkMatcher.find()) {
+            String ch = linkMatcher.group(1);
+            String id = linkMatcher.group(2);
+            allPostLinks.add(new String[]{ch, id});
+        }
         
-        while (blockMatcher.find() && count < maxPosts) {
-            count++;
-            String block = blockMatcher.group(1);
+        System.out.println("Total message links found: " + allPostLinks.size());
+        
+        // ============ PROCESS EACH POST INDIVIDUALLY ============
+        // Better approach: split HTML by message containers
+        String[] messageBlocks = html.split("<div class=\"tgme_widget_message_wrap");
+        
+        System.out.println("Message blocks found: " + (messageBlocks.length - 1));
+        
+        List<PostData> newPosts = new ArrayList<>();
+        int checked = 0;
+        int skipped = 0;
+        
+        for (int i = 1; i < messageBlocks.length && checked < maxPosts; i++) {
+            String block = messageBlocks[i];
             
-            // Extract data
-            String postLink = extractPostLink(block);
-            String postId = extractPostId(postLink);
+            // Extract post ID from this block
+            Pattern idPattern = Pattern.compile("<a class=\"tgme_widget_message_date\" href=\"/[^/]+/(\\d+)\">");
+            Matcher idMatcher = idPattern.matcher(block);
+            
+            if (!idMatcher.find()) continue;
+            
+            String postId = idMatcher.group(1);
+            
+            // Skip already archived
+            if (existingPostIds.contains(postId)) {
+                skipped++;
+                continue;
+            }
+            
+            checked++;
+            
+            // Extract post data from this block
+            String postLink = "https://t.me/" + channelUsername + "/" + postId;
             String dateStr = extractDate(block);
             String text = extractText(block);
             String photoUrl = extractPhotoUrl(block);
@@ -106,37 +192,29 @@ public class Main {
             String documentUrl = extractDocumentUrl(block);
             String documentName = extractDocumentName(block);
             
-            // Skip if already archived
-            if (postId != null && existingPostIds.contains(postId)) {
-                continue;
-            }
-            
-            newCount++;
-            
             // ============ CREATE POST DIRECTORY ============
-            // Folder name: YYYY-MM-DD_POSTID
             String folderName;
-            if (dateStr != null && postId != null) {
+            if (dateStr != null) {
                 folderName = dateStr + "_" + postId;
-            } else if (postId != null) {
-                folderName = "post_" + postId;
             } else {
-                folderName = "post_" + count + "_" + System.currentTimeMillis();
+                folderName = "post_" + postId;
             }
-            // Clean folder name
             folderName = folderName.replaceAll("[^a-zA-Z0-9_\\-]", "_");
             
             String postDir = channelDir + "/" + folderName;
             new File(postDir).mkdirs();
             
-            System.out.println("\n[" + newCount + "] Creating: " + folderName);
+            System.out.println("[" + newPosts.size() + "] " + folderName + 
+                (photoUrl != null ? " 📷" : "") + 
+                (videoUrl != null ? " 🎬" : "") + 
+                (documentUrl != null ? " 📎" : ""));
             
             // ============ SAVE POST.TXT ============
             StringBuilder postTxt = new StringBuilder();
             postTxt.append("Channel: @").append(channelUsername).append("\n");
-            postTxt.append("Post ID: ").append(postId != null ? postId : "N/A").append("\n");
+            postTxt.append("Post ID: ").append(postId).append("\n");
             postTxt.append("Date: ").append(dateStr != null ? dateStr : "N/A").append("\n");
-            postTxt.append("Link: ").append(postLink != null ? postLink : "N/A").append("\n");
+            postTxt.append("Link: ").append(postLink).append("\n");
             postTxt.append("Archived: ").append(LocalDateTime.now().format(
                 DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
             )).append("\n");
@@ -168,22 +246,33 @@ public class Main {
                 if (saved != null) downloadedFiles.add(saved);
             }
             
-            // ============ STORE POST DATA FOR INDEX ============
+            // ============ STORE POST DATA ============
             PostData pd = new PostData();
             pd.folderName = folderName;
             pd.postId = postId;
             pd.dateStr = dateStr;
-            pd.text = text.length() > 100 ? text.substring(0, 100) + "..." : text;
+            pd.text = text.length() > 150 ? text.substring(0, 150) + "..." : text;
             pd.files = downloadedFiles;
             pd.hasPhoto = photoUrl != null;
             pd.hasVideo = videoUrl != null;
             pd.hasDocument = documentUrl != null;
             
-            posts.add(pd);
-            
-            System.out.println("  Text: " + (text.isEmpty() ? "no" : "yes (" + Math.min(text.length(), 50) + " chars)"));
-            System.out.println("  Files: " + downloadedFiles.size());
+            newPosts.add(pd);
+            existingPostIds.add(postId);
         }
+        
+        // ============ MERGE ALL POSTS (existing + new) ============
+        List<PostData> allPosts = new ArrayList<>(newPosts);
+        allPosts.addAll(existingPosts);
+        
+        // Sort by post ID descending (newest first)
+        allPosts.sort((a, b) -> {
+            try {
+                return Long.compare(Long.parseLong(b.postId), Long.parseLong(a.postId));
+            } catch (Exception e) {
+                return 0;
+            }
+        });
         
         // ============ REBUILD INDEX.HTML ============
         StringBuilder indexHtml = new StringBuilder();
@@ -193,79 +282,84 @@ public class Main {
         indexHtml.append("<title>@").append(channelUsername).append(" - Archive</title>\n");
         indexHtml.append("<style>\n");
         indexHtml.append("* { margin: 0; padding: 0; box-sizing: border-box; }\n");
-        indexHtml.append("body { font-family: Tahoma, sans-serif; max-width: 800px; margin: 0 auto; padding: 15px; background: #f5f5f5; }\n");
-        indexHtml.append(".header { background: linear-gradient(135deg, #3a9eea, #2b7ec4); color: white; padding: 25px; border-radius: 15px; text-align: center; margin-bottom: 20px; }\n");
-        indexHtml.append(".header h1 { font-size: 22px; margin-bottom: 5px; }\n");
-        indexHtml.append(".header p { font-size: 13px; opacity: 0.9; }\n");
-        indexHtml.append(".post-card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); display: flex; gap: 15px; align-items: flex-start; }\n");
-        indexHtml.append(".post-card:hover { box-shadow: 0 3px 10px rgba(0,0,0,0.12); }\n");
-        indexHtml.append(".post-icon { font-size: 24px; min-width: 40px; text-align: center; }\n");
+        indexHtml.append("body { font-family: Tahoma, sans-serif; max-width: 750px; margin: 0 auto; padding: 12px; background: #e8eaed; }\n");
+        indexHtml.append(".header { background: linear-gradient(135deg, #2a9d8f, #1d7a6e); color: white; padding: 22px; border-radius: 14px; text-align: center; margin-bottom: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }\n");
+        indexHtml.append(".header h1 { font-size: 20px; }\n");
+        indexHtml.append(".header .stats { font-size: 12px; opacity: 0.9; margin-top: 4px; }\n");
+        indexHtml.append(".post-card { background: white; border-radius: 10px; padding: 14px; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.06); display: flex; gap: 12px; align-items: flex-start; border-right: 3px solid transparent; transition: 0.2s; }\n");
+        indexHtml.append(".post-card:hover { border-right-color: #2a9d8f; box-shadow: 0 3px 10px rgba(0,0,0,0.1); }\n");
+        indexHtml.append(".post-icon { font-size: 28px; min-width: 36px; text-align: center; line-height: 1; }\n");
         indexHtml.append(".post-info { flex: 1; min-width: 0; }\n");
-        indexHtml.append(".post-date { font-size: 11px; color: #888; margin-bottom: 3px; }\n");
-        indexHtml.append(".post-text { font-size: 13px; color: #333; line-height: 1.6; word-wrap: break-word; }\n");
-        indexHtml.append(".post-files { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 5px; }\n");
-        indexHtml.append(".file-badge { display: inline-block; background: #e8f0fe; color: #1a73e8; padding: 4px 10px; border-radius: 12px; font-size: 11px; text-decoration: none; }\n");
-        indexHtml.append(".file-badge:hover { background: #d2e3fc; }\n");
-        indexHtml.append(".folder-link { display: inline-block; color: #3a9eea; font-size: 11px; margin-top: 5px; text-decoration: none; }\n");
-        indexHtml.append(".folder-link:hover { text-decoration: underline; }\n");
-        indexHtml.append(".media-icons { display: flex; gap: 4px; font-size: 14px; }\n");
+        indexHtml.append(".post-date { font-size: 10px; color: #999; margin-bottom: 4px; font-weight: bold; }\n");
+        indexHtml.append(".post-text { font-size: 12px; color: #444; line-height: 1.7; word-wrap: break-word; max-height: 80px; overflow: hidden; }\n");
+        indexHtml.append(".post-files { margin-top: 7px; display: flex; flex-wrap: wrap; gap: 4px; }\n");
+        indexHtml.append(".file-badge { display: inline-block; background: #e8f5e9; color: #2a9d8f; padding: 3px 9px; border-radius: 10px; font-size: 10px; text-decoration: none; border: 1px solid #c8e6c9; }\n");
+        indexHtml.append(".file-badge:hover { background: #c8e6c9; }\n");
+        indexHtml.append(".folder-link { display: inline-block; color: #2a9d8f; font-size: 10px; margin-top: 4px; text-decoration: none; }\n");
+        indexHtml.append(".empty { text-align: center; color: #999; padding: 40px; }\n");
         indexHtml.append("</style>\n</head>\n<body>\n\n");
         
         // Header
         indexHtml.append("<div class=\"header\">\n");
         indexHtml.append("<h1>@").append(channelUsername).append("</h1>\n");
-        indexHtml.append("<p>").append(posts.size()).append(" posts archived | Updated: ")
-            .append(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm"))).append("</p>\n");
+        indexHtml.append("<div class=\"stats\">").append(allPosts.size()).append(" posts | Updated: ")
+            .append(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm"))).append("</div>\n");
         indexHtml.append("</div>\n\n");
         
         // Post cards
-        for (int i = 0; i < posts.size(); i++) {
-            PostData pd = posts.get(i);
-            
-            indexHtml.append("<div class=\"post-card\" data-post-id=\"").append(pd.postId != null ? pd.postId : "").append("\">\n");
-            
-            // Icon
-            indexHtml.append("<div class=\"post-icon\">\n");
-            String icon = "📄";
-            if (pd.hasPhoto) icon = "🖼️";
-            if (pd.hasVideo) icon = "🎬";
-            indexHtml.append(icon);
-            indexHtml.append("</div>\n");
-            
-            // Info
-            indexHtml.append("<div class=\"post-info\">\n");
-            if (pd.dateStr != null) {
-                indexHtml.append("<div class=\"post-date\">").append(pd.dateStr).append("</div>\n");
-            }
-            if (pd.text != null && !pd.text.isEmpty()) {
-                indexHtml.append("<div class=\"post-text\">").append(escapeHtml(pd.text)).append("</div>\n");
-            }
-            
-            // Media icons
-            indexHtml.append("<div class=\"media-icons\">");
-            if (pd.hasPhoto) indexHtml.append("📷");
-            if (pd.hasVideo) indexHtml.append("🎥");
-            if (pd.hasDocument) indexHtml.append("📎");
-            indexHtml.append("</div>\n");
-            
-            // Files
-            if (!pd.files.isEmpty()) {
-                indexHtml.append("<div class=\"post-files\">\n");
-                for (String f : pd.files) {
-                    indexHtml.append("<a class=\"file-badge\" href=\"").append(pd.folderName).append("/").append(f).append("\">")
-                        .append(f).append("</a>\n");
+        if (allPosts.isEmpty()) {
+            indexHtml.append("<div class=\"empty\">No posts archived yet.</div>\n");
+        } else {
+            for (PostData pd : allPosts) {
+                if (pd.postId == null) continue;
+                
+                String postIdSafe = pd.postId != null ? pd.postId : "0";
+                String dateStr = pd.dateStr != null ? pd.dateStr : "";
+                String textPreview = pd.text != null ? pd.text : "";
+                
+                // Determine folder name
+                String folderName = pd.folderName;
+                if (folderName == null) {
+                    folderName = (dateStr.isEmpty() ? "post_" : dateStr + "_") + postIdSafe;
+                    folderName = folderName.replaceAll("[^a-zA-Z0-9_\\-]", "_");
                 }
-                indexHtml.append("</div>\n");
+                
+                indexHtml.append("<div class=\"post-card\" data-post-id=\"").append(postIdSafe).append("\">\n");
+                
+                // Icon
+                String icon = "📝";
+                if (pd.hasPhoto) icon = "🖼️";
+                else if (pd.hasVideo) icon = "🎬";
+                else if (pd.hasDocument) icon = "📎";
+                
+                indexHtml.append("<div class=\"post-icon\">").append(icon).append("</div>\n");
+                indexHtml.append("<div class=\"post-info\">\n");
+                
+                if (!dateStr.isEmpty()) {
+                    indexHtml.append("<div class=\"post-date\">").append(dateStr).append("</div>\n");
+                }
+                
+                if (!textPreview.isEmpty()) {
+                    indexHtml.append("<div class=\"post-text\">").append(escapeHtml(textPreview)).append("</div>\n");
+                }
+                
+                // Files
+                if (pd.files != null && !pd.files.isEmpty()) {
+                    indexHtml.append("<div class=\"post-files\">\n");
+                    for (String f : pd.files) {
+                        indexHtml.append("<a class=\"file-badge\" href=\"").append(folderName).append("/").append(f).append("\">")
+                            .append(escapeHtml(f)).append("</a>\n");
+                    }
+                    indexHtml.append("</div>\n");
+                }
+                
+                indexHtml.append("<a class=\"folder-link\" href=\"").append(folderName).append("/\">Open folder</a>\n");
+                indexHtml.append("</div>\n</div>\n\n");
             }
-            
-            // Link to folder
-            indexHtml.append("<a class=\"folder-link\" href=\"").append(pd.folderName).append("/\">View Folder</a>\n");
-            
-            indexHtml.append("</div>\n</div>\n\n");
         }
         
-        indexHtml.append("<p style=\"text-align:center;color:#888;font-size:12px;padding:20px;\">Total: ")
-            .append(posts.size()).append(" posts</p>\n");
+        indexHtml.append("<p style=\"text-align:center;color:#aaa;font-size:11px;padding:15px;\">Total: ")
+            .append(allPosts.size()).append(" posts</p>\n");
         indexHtml.append("</body>\n</html>");
         
         // Save index.html
@@ -276,10 +370,11 @@ public class Main {
         // ============ SUMMARY ============
         System.out.println("\n==========================================");
         System.out.println("Channel: @" + channelUsername);
-        System.out.println("New posts archived: " + newCount);
-        System.out.println("Total in index: " + posts.size());
-        System.out.println("Output: " + channelDir);
-        System.out.println("Index: " + indexPath);
+        System.out.println("HTML message links found: " + allPostLinks.size());
+        System.out.println("Message blocks: " + (messageBlocks.length - 1));
+        System.out.println("New posts archived: " + newPosts.size());
+        System.out.println("Skipped (already exist): " + skipped);
+        System.out.println("Total in archive: " + allPosts.size());
         System.out.println("==========================================");
     }
     
@@ -297,28 +392,11 @@ public class Main {
     
     // ==================== EXTRACT METHODS ====================
     
-    private static String extractPostLink(String block) {
-        Pattern p = Pattern.compile("<a class=\"tgme_widget_message_date\" href=\"([^\"]+)\">");
-        Matcher m = p.matcher(block);
-        if (m.find()) return "https://t.me" + m.group(1);
-        return null;
-    }
-    
-    private static String extractPostId(String link) {
-        if (link == null) return null;
-        // Extract ID from https://t.me/channel/12345
-        Pattern p = Pattern.compile("/t\\.me/[^/]+/(\\d+)");
-        Matcher m = p.matcher(link);
-        if (m.find()) return m.group(1);
-        return null;
-    }
-    
     private static String extractDate(String block) {
         Pattern p = Pattern.compile("<time[^>]*datetime=\"([^\"]+)\"");
         Matcher m = p.matcher(block);
         if (m.find()) {
             String dt = m.group(1);
-            // Convert to YYYY-MM-DD
             if (dt.contains("T")) {
                 dt = dt.substring(0, dt.indexOf("T"));
             }
@@ -335,7 +413,7 @@ public class Main {
         Matcher m = p.matcher(block);
         if (m.find()) {
             String text = m.group(1);
-            text = text.replaceAll("<br/?>", "\n");
+            text = text.replaceAll("<br\\s*/?>", "\n");
             text = text.replaceAll("<[^>]+>", "");
             text = htmlUnescape(text).trim();
             return text;
@@ -385,8 +463,11 @@ public class Main {
     
     private static String downloadFile(HttpClient client, String fileUrl, String destDir, String prefix) {
         try {
+            // Clean URL
+            String cleanUrl = fileUrl.replace("https://t.mehttps://t.me/", "https://t.me/");
+            
             HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(fileUrl))
+                .uri(URI.create(cleanUrl))
                 .header("User-Agent", "Mozilla/5.0")
                 .timeout(java.time.Duration.ofMinutes(3))
                 .GET()
@@ -399,11 +480,16 @@ public class Main {
             if (response.statusCode() != 200) return null;
             
             String contentLength = response.headers().firstValue("Content-Length").orElse("0");
-            long size = Long.parseLong(contentLength);
-            if (size > MAX_DOWNLOAD_SIZE || size == 0) return null;
+            long size = 0;
+            try { size = Long.parseLong(contentLength); } catch (Exception e) {}
+            
+            if (size > MAX_DOWNLOAD_SIZE) {
+                System.out.println("    Skipping large file: " + size + " bytes");
+                return null;
+            }
             
             String contentType = response.headers().firstValue("Content-Type").orElse("");
-            String ext = getExtension(contentType, fileUrl);
+            String ext = getExtension(contentType, cleanUrl);
             
             String fileName = prefix + "_" + System.currentTimeMillis() + ext;
             Path filePath = Paths.get(destDir, fileName);
@@ -411,8 +497,12 @@ public class Main {
             Files.copy(response.body(), filePath, StandardCopyOption.REPLACE_EXISTING);
             
             long actualSize = Files.size(filePath);
-            System.out.println("    Downloaded: " + fileName + " (" + actualSize + " bytes)");
+            if (actualSize == 0) {
+                Files.delete(filePath);
+                return null;
+            }
             
+            System.out.println("    Downloaded: " + fileName + " (" + actualSize + " bytes)");
             return fileName;
         } catch (Exception e) {
             System.out.println("    Download failed: " + e.getMessage());
@@ -441,7 +531,7 @@ public class Main {
         if (contentType.contains("zip")) return ".zip";
         if (contentType.contains("rar")) return ".rar";
         if (contentType.contains("octet-stream")) return ".bin";
-        if (contentType.contains("text")) return ".txt";
+        if (contentType.contains("text") || contentType.contains("plain")) return ".txt";
         
         return "";
     }
@@ -466,6 +556,7 @@ public class Main {
             .replace("&gt;", ">")
             .replace("&quot;", "\"")
             .replace("&#39;", "'")
-            .replace("&nbsp;", " ");
+            .replace("&nbsp;", " ")
+            .replace("<br>", "\n");
     }
 }
