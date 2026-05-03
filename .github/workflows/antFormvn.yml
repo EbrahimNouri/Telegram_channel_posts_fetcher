@@ -1,8 +1,8 @@
-name: Telegram Channel Archiver
+name: Telegram Channel Archiver(MVN)
 
 on:
-  schedule:
-    - cron: '0 */1 * * *'
+  # schedule:
+  #   - cron: '0 */1 * * *'
   push:
     branches: [ "main" ]
   workflow_dispatch:
