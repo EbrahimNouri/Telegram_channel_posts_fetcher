@@ -1,0 +1,82 @@
+name: Telegram Channel Archiver
+
+on:
+  schedule:
+    - cron: '0 */23 * * *'
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: 'Channel username (without @)'
+        required: false
+        type: string
+        default: 'proxymtproto'
+      count:
+        description: 'Number of posts to fetch'
+        required: false
+        type: string
+        default: '100'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Set up JDK 11
+      uses: actions/setup-java@v4
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+    
+    - name: Build with Ant
+      run: ant -noinput -buildfile build.xml
+    
+    - name: Run Archiver
+      env:
+        CHANNEL_USERNAME: ${{ github.event.inputs.channel || 'proxymtproto' }}
+        POST_COUNT: ${{ github.event.inputs.count || '100' }}
+      run: java -cp build Main
+    
+    - name: Update README
+      run: |
+        echo "# Telegram Channels Archive" > README.md
+        echo "" >> README.md
+        echo "| Channel | Posts |" >> README.md
+        echo "|---------|-------|" >> README.md
+        for dir in channels/*/; do
+          if [ -d "$dir" ]; then
+            channel_name=$(basename "$dir")
+            post_count=$(ls -1d "$dir"/*/ 2>/dev/null | wc -l)
+            echo "| [@$channel_name](${dir}index.html) | $post_count |" >> README.md
+          fi
+        done
+        echo "" >> README.md
+        echo "*Auto-updated every hour*" >> README.md
+    
+    - name: Commit and Push
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add channels/ README.md
+        if git diff --staged --quiet; then
+          echo "No changes"
+        else
+          git pull --rebase origin main
+          git commit -m "Archive channels - $(date +'%Y-%m-%d %H:%M:%S')"
+          git push
+        fi
+    
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: channels-archive
+        path: channels/
+        retention-days: 7
