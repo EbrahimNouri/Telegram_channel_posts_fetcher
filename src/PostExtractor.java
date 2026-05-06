@@ -46,63 +46,46 @@ public class PostExtractor {
     }
     
     public static String extractDocumentUrl(String block) {
-        // Pattern 1: Direct document link with href
-        Pattern p1 = Pattern.compile(
+        Pattern p = Pattern.compile(
             "<a\\s+class=\"tgme_widget_message_document[^\"]*\"\\s+href=\"([^\"]+)\""
         );
-        Matcher m1 = p1.matcher(block);
-        if (m1.find()) {
-            String link = m1.group(1);
-            // Clean double URLs
-            link = link.replace("https://t.mehttps://t.me/", "https://t.me/");
+        Matcher m = p.matcher(block);
+        if (m.find()) {
+            String link = m.group(1);
             if (!link.startsWith("http")) link = "https://t.me" + link;
             return link;
         }
-        
-        // Pattern 2: Look for cdn link or download link
-        Pattern p2 = Pattern.compile(
-            "(?:href|src|data-url)\\s*=\\s*[\"']([^\"']*(?:cdn|telesco|download)[^\"']*)[\"']",
-            Pattern.CASE_INSENSITIVE
-        );
-        Matcher m2 = p2.matcher(block);
-        if (m2.find()) {
-            return m2.group(1);
-        }
-        
         return null;
     }
     
     public static String extractDocumentName(String block) {
-        // Pattern 1: Exact match for document title span
+        // Try multiple patterns
+        String name = null;
+        
+        // Pattern 1: document title span
         Pattern p1 = Pattern.compile(
             "<span\\s+class=\"tgme_widget_message_document_title[^\"]*\"[^>]*>(.*?)</span>",
             Pattern.DOTALL
         );
         Matcher m1 = p1.matcher(block);
         if (m1.find()) {
-            String name = m1.group(1).trim();
+            name = m1.group(1).trim();
             name = name.replaceAll("<[^>]+>", "");
             name = htmlUnescape(name);
-            // CLEAN: Remove any size information attached at the end
-            name = name.replaceAll("\\s+\\d+\\.?\\d*\\s*[KkMmGg][Bb]\\s*$", "");
-            name = name.replaceAll("\\s+\\d+\\s*[KkMmGg][Bb]\\s*$", "");
-            name = name.trim().replaceAll("[.\\s]+$", "");
-            if (!name.isEmpty()) return name;
+            if (!name.isEmpty() && !name.matches("\\d+")) return name;
         }
         
-        // Pattern 2: Generic document span
+        // Pattern 2: document link text
         Pattern p2 = Pattern.compile(
-            "class=\"tgme_widget_message_document[^\"]*\"[^>]*href=\"[^\"]*\"[^>]*>\\s*<span[^>]*>(.*?)</span>",
+            "class=\"tgme_widget_message_document[^\"]*\"[^>]*href=\"[^\"]*\"[^>]*>\\s*<[^>]+>\\s*(.*?)\\s*</a>",
             Pattern.DOTALL
         );
         Matcher m2 = p2.matcher(block);
         if (m2.find()) {
-            String name = m2.group(1).trim();
+            name = m2.group(1).trim();
             name = name.replaceAll("<[^>]+>", "");
             name = htmlUnescape(name);
-            name = name.replaceAll("\\s+\\d+\\.?\\d*\\s*[KkMmGg][Bb]\\s*$", "");
-            name = name.trim().replaceAll("[.\\s]+$", "");
-            if (!name.isEmpty()) return name;
+            if (!name.isEmpty() && !name.matches("\\d+")) return name;
         }
         
         return null;
