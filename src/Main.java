@@ -107,6 +107,14 @@ public class Main {
         System.out.println("Processed: " + processed);
         System.out.println("Total archived: " + allPosts.size());
         System.out.println("==========================================");
+        // بعد از دریافت html در main:
+String html = TelegramFetcher.fetchHtml(channelUsername);
+
+// اضافه کنید:
+HtmlDebugger.debugHtml(html, channelUsername);
+
+// سپس ادامه کد قبلی:
+List<String> postIds = TelegramFetcher.extractPostIds(html, channelUsername);
     }
     
     private static Map<String, PostData> loadExistingPosts(String channelDir) {
