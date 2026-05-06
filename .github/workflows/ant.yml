@@ -2,7 +2,7 @@ name: Telegram Channel Archiver
 
 on:
   schedule:
-    - cron: '0 */1 * * *'
+    - cron: '0 */23 * * *'
   push:
     branches: [ "main" ]
   workflow_dispatch:
