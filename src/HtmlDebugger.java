@@ -1,3 +1,8 @@
+package com.telegram.archive;
+
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+
 public class HtmlDebugger {
     
     public static void debugHtml(String html, String channelUsername) {
